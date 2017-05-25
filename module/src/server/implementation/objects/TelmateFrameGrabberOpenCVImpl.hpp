@@ -19,6 +19,8 @@
 
 #include <boost/atomic.hpp>
 
+#include <opencv2/core/mat.hpp>
+
 namespace kurento
 {
 
@@ -49,8 +51,9 @@ private:
     boost::thread_group tp;
     boost::lockfree::queue<VideoFrame*> *frameQueue;
     boost::thread* thr;
+    boost::atomic<bool> thrLoop;
     void queueHandler();
-
+    std::string getCurrentTimestamp();
 };
 
 } /* kurento */

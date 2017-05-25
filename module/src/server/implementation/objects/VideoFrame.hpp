@@ -11,9 +11,9 @@ namespace kurento
 class VideoFrame {
 public:
     VideoFrame() { };
-    cv::Mat *mat;
-    std::string *epName;
-    long *ts;
+    cv::Mat mat;
+    std::string epName;
+    std::string ts;
 
 private:
 
