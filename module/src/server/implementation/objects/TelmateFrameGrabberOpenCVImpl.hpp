@@ -7,6 +7,17 @@
 #include "TelmateFrameGrabber.hpp"
 #include <EventHandler.hpp>
 #include <gst/gst.h>
+#include "VideoFrame.hpp"
+
+#include <boost/asio/io_service.hpp>
+#include <boost/bind.hpp>
+#include <boost/thread/thread.hpp>
+
+#include <boost/thread/thread.hpp>
+#include <boost/lockfree/queue.hpp>
+#include <iostream>
+
+#include <boost/atomic.hpp>
 
 namespace kurento
 {
@@ -31,6 +42,15 @@ protected:
             return std::shared_ptr<MediaObject> ();
         }
     }
+
+
+private:
+    boost::asio::io_service ioService;
+    boost::thread_group tp;
+    boost::lockfree::queue<VideoFrame*> *frameQueue;
+    boost::thread* thr;
+    void queueHandler();
+
 };
 
 } /* kurento */

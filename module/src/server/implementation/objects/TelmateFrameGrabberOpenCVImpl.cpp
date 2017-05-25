@@ -3,28 +3,63 @@
 #include "TelmateFrameGrabberOpenCVImpl.hpp"
 #include <KurentoException.hpp>
 
-namespace kurento
-{
+namespace kurento {
 
-TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl ()
-{
-    GST_DEBUG ("TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl()");
-}
+    TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() {
+
+        frameQueue = new boost::lockfree::queue<VideoFrame *>(0);
+
+        /*boost::asio::io_service::work work(ioService);
+
+        tp.create_thread(
+                boost::bind(&boost::asio::io_service::run, &ioService)
+        );
+
+        tp.create_thread(
+                boost::bind(&boost::asio::io_service::run, &ioService)
+        );
+
+        ioService.post(boost::bind(this->queueHandler)); // post to the pool
+        */
+        thr = new boost::thread(boost::bind(&TelmateFrameGrabberOpenCVImpl::queueHandler, this));
+        //thr->join();
+        GST_ERROR("TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl()");
+    }
 
 /*
  * This function will be called with each new frame. mat variable
  * contains the current frame. You should insert your image processing code
  * here. Any changes in mat, will be sent through the Media Pipeline.
  */
-void TelmateFrameGrabberOpenCVImpl::process (cv::Mat &mat)
-{
+    void TelmateFrameGrabberOpenCVImpl::process(cv::Mat &mat) {
+
+        VideoFrame *vf = new VideoFrame();
+        //vf.epName = new std::string("1");
+        this->frameQueue->push(vf);
+
 //  GST_LOG_OBJECT (self, "Stats: %" GST_PTR_FORMAT, stats);
 //GST_LOG ("No %s in config file", nodeName);
-    GST_ERROR ("Processing Frame");
-  // FIXME: Implement this
-  //throw KurentoException (NOT_IMPLEMENTED, "TelmateFrameGrabberOpenCVImpl::process: Not implemented");
+//        GST_ERROR ("Processing Frame %i",  this->frameQueue->size());
+        // FIXME: Implement this
+        //throw KurentoException (NOT_IMPLEMENTED, "TelmateFrameGrabberOpenCVImpl::process: Not implemented");
+
+    }
+void TelmateFrameGrabberOpenCVImpl::queueHandler()
+{
+    VideoFrame *vf;
+    while(1) {
+        boost::this_thread::sleep( boost::posix_time::seconds(1) );
+
+        if (!this->frameQueue->empty()) {
+            /* Handle the frame */
+
+            this->frameQueue->pop(vf);
+            delete vf;
+
+
+        }
+
+    }
 }
-
-
 
 } /* kurento */
