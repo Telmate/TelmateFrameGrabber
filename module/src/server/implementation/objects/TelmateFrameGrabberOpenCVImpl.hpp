@@ -3,6 +3,8 @@
 #ifndef __TELMATE_FRAME_GRABBER_OPENCV_IMPL_HPP__
 #define __TELMATE_FRAME_GRABBER_OPENCV_IMPL_HPP__
 
+#include <ctime>
+#include <iostream>
 #include <OpenCVProcess.hpp>
 #include "TelmateFrameGrabber.hpp"
 #include <EventHandler.hpp>
@@ -21,6 +23,10 @@
 
 #include <opencv2/core/mat.hpp>
 
+#include <boost/thread/mutex.hpp>
+#include <boost/interprocess/sync/scoped_lock.hpp>
+
+
 namespace kurento
 {
 
@@ -31,7 +37,7 @@ public:
 
   TelmateFrameGrabberOpenCVImpl ();
 
-  virtual ~TelmateFrameGrabberOpenCVImpl () {};
+  virtual ~TelmateFrameGrabberOpenCVImpl () ;
 
   virtual void process (cv::Mat &mat);
 
@@ -52,8 +58,16 @@ private:
     boost::lockfree::queue<VideoFrame*> *frameQueue;
     boost::thread* thr;
     boost::atomic<bool> thrLoop;
+
+    long lastQueueTimeStamp;
+    int snapInterval;
+    int queueLength;
+
     void queueHandler();
-    std::string getCurrentTimestamp();
+    std::string getCurrentTimestampString();
+    long getCurrentTimestampLong();
+
+    boost::mutex workerThreadMutex;
 };
 
 } /* kurento */

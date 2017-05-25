@@ -7,106 +7,120 @@ namespace pt = boost::posix_time;
 
 namespace kurento {
 
+TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl()
+{
+
+    this->thrLoop = true;
+    this->frameQueue = new boost::lockfree::queue<VideoFrame *>(0);
+    this->snapInterval = 1000;
+
+    this->thr = new boost::thread(boost::bind(&TelmateFrameGrabberOpenCVImpl::queueHandler, this));
+
+    GST_ERROR("TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() called");
+}
 
 
-    TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() {
+TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl()
+{
 
-        this->thrLoop = true;
-        this->frameQueue = new boost::lockfree::queue<VideoFrame *>(0);
+    this->thrLoop = false;
+    this->thr->join();
+    delete this->frameQueue;
+    this->frameQueue = NULL;
+    delete this->thr;
+    this->thr = NULL;
 
-        /*boost::asio::io_service::work work(ioService);
-
-        tp.create_thread(
-                boost::bind(&boost::asio::io_service::run, &ioService)
-        );
-
-        tp.create_thread(
-                boost::bind(&boost::asio::io_service::run, &ioService)
-        );
-
-        ioService.post(boost::bind(this->queueHandler)); // post to the pool
-        */
-        this->thr = new boost::thread(boost::bind(&TelmateFrameGrabberOpenCVImpl::queueHandler, this));
-        //thr->join();
-        GST_ERROR("TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl()");
-    }
+    GST_ERROR("TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() called");
+}
 
 /*
  * This function will be called with each new frame. mat variable
  * contains the current frame. You should insert your image processing code
  * here. Any changes in mat, will be sent through the Media Pipeline.
  */
-    void TelmateFrameGrabberOpenCVImpl::process(cv::Mat &mat) {
+void TelmateFrameGrabberOpenCVImpl::process(cv::Mat &mat)
+{
 
-        /*boost::posix_time::ptime boost::posix_time::time_t_epoch(date(1970,1,1));
-        boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
-        boost::posix_time::time_duration diff = now - time_t_epoch;
-        */
+        if ((this->getCurrentTimestampLong() - this->lastQueueTimeStamp) > this->snapInterval) {
 
-        VideoFrame *ptrVf = new VideoFrame();
-        //cv::Mat ptrMat; //= new cv::Mat();
-        ptrVf->mat = mat.clone();
+            VideoFrame *ptrVf = new VideoFrame();
+            ptrVf->mat = mat.clone();
+            ptrVf->ts = this->getCurrentTimestampString();
+            this->lastQueueTimeStamp = this->getCurrentTimestampLong();
 
-        //std::string *ptrTs = new std::string();
-        //*ptrTs = this->getCurrentTimestamp();
-        //*ptrVf->ts = *ptrTs;
-        this->frameQueue->push(ptrVf);
+            this->frameQueue->push(ptrVf);
+            ++this->queueLength;
+        }
 
-//  GST_LOG_OBJECT (self, "Stats: %" GST_PTR_FORMAT, stats);
+//GST_LOG_OBJECT (self, "Stats: %" GST_PTR_FORMAT, stats);
 //GST_LOG ("No %s in config file", nodeName);
-//        GST_ERROR ("Processing Frame %i",  this->frameQueue->size());
-        // FIXME: Implement this
-        //throw KurentoException (NOT_IMPLEMENTED, "TelmateFrameGrabberOpenCVImpl::process: Not implemented");
+//GST_ERROR ("Processing Frame %i",  this->frameQueue->size());
+//throw KurentoException (NOT_IMPLEMENTED, "TelmateFrameGrabberOpenCVImpl::process: Not implemented");
+}
 
-    }
 void TelmateFrameGrabberOpenCVImpl::queueHandler()
 {
-    VideoFrame *vf;
+    VideoFrame *ptrVf;
     cv::Mat image;
     std::vector<int> params;
+
+    /* Set PNG parameters, compression etc. */
     params.push_back(CV_IMWRITE_PNG_COMPRESSION);
     params.push_back(9);
-    //cv::IplImage srcImage;
+
+    boost::mutex::scoped_lock lock(workerThreadMutex);
 
     while(this->thrLoop) {
 
-        boost::this_thread::sleep( boost::posix_time::seconds(1) );
-
         if (!this->frameQueue->empty()) {
-            /* Handle the frame */
 
-            this->frameQueue->pop(vf);
-//            srcImage = vf->mat.clone();
-            //dstImage = *vf->mat;
-            cv::cvtColor(vf->mat,image,CV_BGR2RGB);
-            //std::stringstream a;
-            //a << "/tmp/" << getCurrentTimestamp();
-            //srcImage = *vf->mat;
-            cv::imwrite("/tmp/asd.png",vf->mat,params);
-            //imdecode(*vf->mat, CV_LOAD_IMAGE_ANYDEPTH, srcImage);
-            //std::cout << this->getCurrentTimestamp();
+            empty_queue:
+                this->frameQueue->pop(ptrVf);
+                --this->queueLength;
 
-            //delete vf->mat;
-            //delete vf->ts;
-            //delete vf->epName;
-            delete vf;
+                std::string filename = "/tmp/" + ptrVf->ts + ".png";
 
-            //GST_ERROR("POPed.");
+                cv::imwrite(filename.c_str(),ptrVf->mat,params);
+                ptrVf->mat.release();
+
+                delete ptrVf;
+                ptrVf = NULL;
 
         }
-
+        else {
+            boost::this_thread::sleep( boost::posix_time::seconds(1) );
+        }
     }
+
+    while(!this->frameQueue->empty()) {
+        goto empty_queue;
+        GST_ERROR("Emptying frameQueue..");
+    }
+
+    lock.unlock();
+
 }
 
-std::string TelmateFrameGrabberOpenCVImpl::getCurrentTimestamp()
+std::string TelmateFrameGrabberOpenCVImpl::getCurrentTimestampString()
 {
-    std::stringstream ss;
+    struct timeval tp;
+    long int ms;
+    std::stringstream sstr_ts;
 
-    boost::posix_time::ptime time = boost::posix_time::microsec_clock::local_time();
-    boost::posix_time::time_duration duration( time.time_of_day() );
+    gettimeofday(&tp, NULL);
+    ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+    sstr_ts << ms;
+    return sstr_ts.str();
 
-    ss << duration.total_milliseconds() << std::endl;
-    return ss.str();
+}
+
+long TelmateFrameGrabberOpenCVImpl::getCurrentTimestampLong()
+{
+    struct timeval tp;
+    std::stringstream sstr_ts;
+
+    gettimeofday(&tp, NULL);
+    return (tp.tv_sec * 1000 + tp.tv_usec / 1000);
 
 }
 
