@@ -4,12 +4,18 @@
 
 This module implements a Kurento endpoint frames grabber.
 
-The module uses the Kurento OpenCV support and receive reference to an opencv[cv::mat](http://docs.opencv.org/3.1.0/d3/d63/classcv_1_1Mat.html)object 
+The module uses the Kurento OpenCV support and receive reference to a opencv [cv::mat](http://docs.opencv.org/3.1.0/d3/d63/classcv_1_1Mat.html) object containing the frame data and saves it to disk.
 
-containing the frame data and saves it to disk.
+An instance of this module is created for each Kurento endpoint, the instance implements a ```process()``` function which is called by the Kurento plugin-core for each frame.
+A ```process()``` function creates a VideoFrame object in heap, performs a deep copy of the Mat object and adds a timestamp.
+The VideoFrame object ptr is then pushed into a variable sized ```boost::lockfree::queue```.
 
-A instance module is created for each Kurento endpoint.
+Upon plugin initialization a queue handler thread is created with thread main function set to ```queueHandler()```. This function pops VideoFrames pointers from the ```boost::lockfree::queue``` and uses the Mat object data to save a PNG image to the disk.
 
+## Design
+The plugin is designed around a lock-free thread-safe producer-consumer pattern
+to ensure speed and proper usability under system load and slow IO as the Kurento plugin subsystem is implemented serially. (plugins are actually filters and each video frame processed by the filter). 
+ 
  
 ## Compiling:
 
@@ -20,7 +26,7 @@ Please make sure Boost C++ and OpenCV are installed
 To build the Java bindings, Maven is needed. 
 
 ```
-git clone TelmateFrameGrabber.git
+git clone https://github.com/avis/TelmateFrameGrabber
 ```
 
 ```
@@ -41,21 +47,15 @@ mvn compile exec:java
 
 ## Public Methods:
 
-#### void setSnapInterval(int snapInterval): 
-Optional, Recommended, Sets the snapshot interval (in milliseconds). Defaults to 1000ms.
+* ```void setSnapInterval(int snapInterval)```: Optional, Recommended, Sets the snapshot interval (in milliseconds). Defaults to 1000ms.
 
+* ```void setStoragePath(const std::string &path)```: Optional, Recommended, Sets the storage path location. Defaults to /tmp.
 
-#### void setStoragePath(const std::string &path):
-Optional, Recommended, Sets the storage path location. Defaults to /tmp.
+* ```void setWebRtcEpName(const std::string &epName)```: Optional, Sets the endpoint name. Defaults to NULL.
 
-#### void setWebRtcEpName(const std::string &epName):
-Optional, Sets the endpoint name. Defaults to NULL.
+* ```int getSnapInterval()```: Returns the current configured snapshot interval. 
 
-#### int getSnapInterval():
-Returns the current configured snapshot interval. 
-
-#### std::string getStoragePath():
-Returns the current configured snapshots path.
+* ```std::string getStoragePath()```: Returns the current configured snapshots path.
 
 
 ## Classes:
@@ -70,7 +70,8 @@ This Class implements the plugin, Interacts with TelmateFrameGrabberImpl.
 ## Authors:
 Avi Saranga 
 
-## License & Distribution:
+
+## Licensing:
 MIT License
 
 Copyright (c) 2017 Telmate, LLC
