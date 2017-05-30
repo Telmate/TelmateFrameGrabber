@@ -20,7 +20,7 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl()
 
     this->thr = new boost::thread(boost::bind(&TelmateFrameGrabberOpenCVImpl::queueHandler, this));
 
-    GST_DEBUG("TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() called");
+    GST_ERROR("TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() called");
 }
 
 
@@ -34,7 +34,7 @@ TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl()
     delete this->thr;
     this->thr = NULL;
 
-    GST_DEBUG("TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() called");
+    GST_ERROR("TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() called");
 }
 
 /*
@@ -113,12 +113,8 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler()
                 }
 
                 boost::filesystem::path dir(this->storagePathSubdir.c_str());
-
-                if(!boost::filesystem::is_directory(dir)) {
-                  /* Directory does not exist, create it */
-                    boost::filesystem::create_directories(dir);
-                }
-
+                boost::filesystem::create_directories(dir);
+                GST_ERROR("boost::filesystem::create_directories(dir);");
 
                 std::string fullpath = this->storagePathSubdir  + "/" + filename;
 
@@ -128,7 +124,7 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler()
                 }
                 catch (...) {
                     throw KurentoException (NOT_IMPLEMENTED, "TelmateFrameGrabberOpenCVImpl::queueHandler() imgwrite() failed.\n");
-
+                    GST_ERROR("TelmateFrameGrabberOpenCVImpl::queueHandler() imgwrite() failed.");
                 }
 
                 ptrVf->mat.release();
@@ -144,7 +140,7 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler()
 
     while(!this->frameQueue->empty()) {
         goto empty_queue;
-        GST_DEBUG("Emptying frameQueue..");
+        GST_ERROR("Emptying frameQueue..");
     }
 
     lock.unlock();
