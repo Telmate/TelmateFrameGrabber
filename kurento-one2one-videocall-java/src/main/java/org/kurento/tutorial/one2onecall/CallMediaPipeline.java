@@ -66,7 +66,7 @@ public class CallMediaPipeline {
 
       /* Second endpoint */
       calleeWebRtcEp.connect(TelmateFrameGrabber2);
-      TelmateFrameGrabber2.connect(calleeWebRtcEp);
+      TelmateFrameGrabber2.connect(callerWebRtcEp);
 
       TelmateFrameGrabber2.setSnapInterval(snapinterval);
       TelmateFrameGrabber2.setWebRtcEpName("TelmateFrameGrabber2");

@@ -110,13 +110,15 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler()
                 if(this->storagePathSubdir.size() == 0) {
 
                     this->storagePathSubdir = this->storagePath + "/frames_" + this->getCurrentTimestampString();
-                    boost::filesystem::path dir(this->storagePathSubdir.c_str());
-
-                    if(!boost::filesystem::is_directory(dir)) {
-                        /* Directory does not exist, create it */
-                        boost::filesystem::create_directories(dir);
-                    }
                 }
+
+                boost::filesystem::path dir(this->storagePathSubdir.c_str());
+
+                if(!boost::filesystem::is_directory(dir)) {
+                  /* Directory does not exist, create it */
+                    boost::filesystem::create_directories(dir);
+                }
+
 
                 std::string fullpath = this->storagePathSubdir  + "/" + filename;
 
