@@ -13,10 +13,13 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl()
     this->thrLoop = true;
     this->frameQueue = new boost::lockfree::queue<VideoFrame *>(0);
     this->snapInterval = 1000;
+    this->epName = "EP_NAME_UNINITIALIZED";
+    this->storagePath = "/tmp";
+    this->framesCounter = 0;
 
     this->thr = new boost::thread(boost::bind(&TelmateFrameGrabberOpenCVImpl::queueHandler, this));
 
-    GST_ERROR("TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() called");
+    GST_DEBUG("TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() called");
 }
 
 
@@ -30,7 +33,7 @@ TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl()
     delete this->thr;
     this->thr = NULL;
 
-    GST_ERROR("TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() called");
+    GST_DEBUG("TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() called");
 }
 
 /*
@@ -40,6 +43,7 @@ TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl()
  */
 void TelmateFrameGrabberOpenCVImpl::process(cv::Mat &mat)
 {
+    GST_DEBUG("ENDPOINT NAME: %s", this->epName.c_str());
 
         if ((this->getCurrentTimestampLong() - this->lastQueueTimeStamp) > this->snapInterval) {
 
@@ -50,12 +54,9 @@ void TelmateFrameGrabberOpenCVImpl::process(cv::Mat &mat)
 
             this->frameQueue->push(ptrVf);
             ++this->queueLength;
+            ++this->framesCounter;
         }
 
-//GST_LOG_OBJECT (self, "Stats: %" GST_PTR_FORMAT, stats);
-//GST_LOG ("No %s in config file", nodeName);
-//GST_ERROR ("Processing Frame %i",  this->frameQueue->size());
-//throw KurentoException (NOT_IMPLEMENTED, "TelmateFrameGrabberOpenCVImpl::process: Not implemented");
 }
 
 void TelmateFrameGrabberOpenCVImpl::queueHandler()
@@ -78,9 +79,13 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler()
                 this->frameQueue->pop(ptrVf);
                 --this->queueLength;
 
-                std::string filename = "/tmp/" + ptrVf->ts + ".png";
+                std::string filename = std::to_string(this->framesCounter) + "_" + ptrVf->ts + ".png";
+                std::string filepath = this->storagePath + "/" + this->epName + "/frames_" + this->getCurrentTimestampString();
+                std::string fullpath = filepath + "/" + filename;
+                boost::filesystem::path dir(filepath.c_str());
+                boost::filesystem::create_directories(dir);
 
-                cv::imwrite(filename.c_str(),ptrVf->mat,params);
+                cv::imwrite(fullpath.c_str(),ptrVf->mat,params);
                 ptrVf->mat.release();
 
                 delete ptrVf;
@@ -94,7 +99,7 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler()
 
     while(!this->frameQueue->empty()) {
         goto empty_queue;
-        GST_ERROR("Emptying frameQueue..");
+        GST_DEBUG("Emptying frameQueue..");
     }
 
     lock.unlock();

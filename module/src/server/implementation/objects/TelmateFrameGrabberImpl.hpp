@@ -44,7 +44,6 @@ public:
 
   TelmateFrameGrabberImpl (const boost::property_tree::ptree &config, std::shared_ptr<MediaPipeline> mediaPipeline);
   ~TelmateFrameGrabberImpl();
-  //virtual ~TelmateFrameGrabberImpl () {};
 
   /* Next methods are automatically implemented by code generator */
   virtual bool connect (const std::string &eventType, std::shared_ptr<EventHandler> handler);
@@ -53,6 +52,12 @@ public:
                        Json::Value &response);
 
   virtual void Serialize (JsonSerializer &serializer);
+
+  int getSnapInterval();
+  void setSnapInterval(int snapInterval);
+  std::string getStoragePath();
+  void setStoragePath(const std::string &path);
+  void setWebRtcEpName(const std::string &epName);
 
 private:
 
@@ -63,7 +68,7 @@ private:
   };
 
   static StaticConstructor staticConstructor;
-  GstElement *mFrameGrabberFilterImplOpenCV;
+
 };
 
 } /* telmateframegrabber */

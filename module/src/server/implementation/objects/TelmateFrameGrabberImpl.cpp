@@ -19,41 +19,41 @@ namespace module
 namespace telmateframegrabber
 {
 
-TelmateFrameGrabberImpl::TelmateFrameGrabberImpl (const boost::property_tree::ptree &config, std::shared_ptr<MediaPipeline> mediaPipeline) : OpenCVFilterImpl (config, std::dynamic_pointer_cast<MediaPipelineImpl> (mediaPipeline) )
-
+TelmateFrameGrabberImpl::TelmateFrameGrabberImpl(const boost::property_tree::ptree &config, std::shared_ptr<MediaPipeline> mediaPipeline) : OpenCVFilterImpl (config, std::dynamic_pointer_cast<MediaPipelineImpl> (mediaPipeline))
 {
-
-    g_object_set (element, "filter-factory", "mFrameGrabberFilterImplOpenCV", NULL);
-    g_object_get (G_OBJECT (element), "filter", &mFrameGrabberFilterImplOpenCV, NULL);
-
-    if (mFrameGrabberFilterImplOpenCV == NULL) {
-        throw KurentoException (MEDIA_OBJECT_NOT_AVAILABLE,
-                                "Media Object not available");
-    }
-
-    g_object_set (mFrameGrabberFilterImplOpenCV, "target-object",
-                  static_cast<kurento::TelmateFrameGrabberOpenCVImpl *> (this), NULL);
-
-    g_object_unref (mFrameGrabberFilterImplOpenCV);
-
-
-    GST_DEBUG("TelmateFrameGrabberImpl::TelmateFrameGrabberImpl()");
-
-    /*std::string s = config.get<std::string>("name");
-    GST_ERROR("NAME: %s",s.c_str());
-*/
-
 
 }
 TelmateFrameGrabberImpl::~TelmateFrameGrabberImpl()
 {
-    mFrameGrabberFilterImplOpenCV = NULL;
-
-
 
 }
 
-MediaObjectImpl *
+int TelmateFrameGrabberImpl::getSnapInterval()
+{
+    return TelmateFrameGrabberOpenCVImpl::snapInterval;
+}
+
+
+void TelmateFrameGrabberImpl::setSnapInterval(int snapInterval) {
+    TelmateFrameGrabberOpenCVImpl::snapInterval = snapInterval;
+    return;
+}
+
+std::string TelmateFrameGrabberImpl::getStoragePath() {
+    return TelmateFrameGrabberOpenCVImpl::storagePath;
+}
+
+void TelmateFrameGrabberImpl::setStoragePath(const std::string &path) {
+    TelmateFrameGrabberOpenCVImpl::storagePath = path;
+    return;
+}
+
+void TelmateFrameGrabberImpl::setWebRtcEpName(const std::string &epName) {
+    TelmateFrameGrabberOpenCVImpl::epName = epName;
+    return;
+}
+
+    MediaObjectImpl *
 TelmateFrameGrabberImplFactory::createObject (const boost::property_tree::ptree &config, std::shared_ptr<MediaPipeline> mediaPipeline) const
 {
   return new TelmateFrameGrabberImpl (config, mediaPipeline);

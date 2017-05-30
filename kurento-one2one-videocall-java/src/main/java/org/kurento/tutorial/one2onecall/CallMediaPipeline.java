@@ -56,6 +56,7 @@ public class CallMediaPipeline {
 
       callerWebRtcEp.connect(TelmateFrameGrabber1);
       TelmateFrameGrabber1.connect(calleeWebRtcEp);
+      log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + TelmateFrameGrabber1.getSnapInterval());
 
       calleeWebRtcEp.connect(TelmateFrameGrabber2);
       TelmateFrameGrabber2.connect(calleeWebRtcEp);

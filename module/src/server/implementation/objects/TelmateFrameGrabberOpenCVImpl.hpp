@@ -26,6 +26,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 
+#include <boost/filesystem.hpp>
 
 namespace kurento
 {
@@ -40,6 +41,12 @@ public:
   virtual ~TelmateFrameGrabberOpenCVImpl () ;
 
   virtual void process (cv::Mat &mat);
+
+
+  int framesCounter;
+  int snapInterval;
+  std::string storagePath;
+  std::string epName;
 
 protected:
     std::shared_ptr<MediaObject> getSharedPtr()
@@ -60,7 +67,6 @@ private:
     boost::atomic<bool> thrLoop;
 
     long lastQueueTimeStamp;
-    int snapInterval;
     int queueLength;
 
     void queueHandler();

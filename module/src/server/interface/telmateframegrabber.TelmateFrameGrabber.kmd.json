@@ -14,7 +14,60 @@
 	    "final": true
 	  }
 	]
-      }
+      },
+      "methods": [
+        {
+          "name": "getSnapInterval",
+          "doc": "get Snapshot interval",
+          "params": [ ],
+          "return": {
+            "doc": "Value of current snapshot interval",
+            "type": "int"
+          }
+        },
+        {
+          "name": "setSnapInterval",
+          "doc": "set Snapshot interval.",
+          "params": [
+            {
+              "name": "snapInterval",
+              "doc": "Value of snapInterval in milliseconds",
+              "type": "int"
+            }
+          ]
+        },
+        {
+          "name": "getStoragePath",
+          "doc": "get the storage location for snapshots",
+          "params": [ ],
+          "return": {
+            "doc": "path of snapshots location",
+            "type": "String"
+          }
+        },
+        {
+          "name": "setStoragePath",
+          "doc": "set the storage location for snapshots",
+          "params": [
+            {
+              "name": "path",
+              "doc": "path of snapshots location",
+              "type": "String"
+            }
+          ]
+        },
+        {
+          "name": "setWebRtcEpName",
+          "doc": "set the webetc endpoint name (used for storage location of snapshots)",
+          "params": [
+            {
+              "name": "epName",
+              "doc": "endpoint name",
+              "type": "String"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
