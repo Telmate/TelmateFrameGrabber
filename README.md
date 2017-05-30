@@ -60,12 +60,11 @@ mvn compile exec:java
 
 ## Classes:
 
-#### TelmateFrameGrabberImpl:
-Kurento Plugin. This class is an interface between the Kurento plugin core and the actual plugin. 
+* ```TelmateFrameGrabberImpl```: Kurento Plugin. This class is an interface between the Kurento plugin core and the actual plugin. 
 
-#### TelmateFrameGrabberOpenCVImpl:
-This Class implements the plugin, Interacts with TelmateFrameGrabberImpl.
+* ```TelmateFrameGrabberOpenCVImpl```: This Class implements the plugin, Interacts with TelmateFrameGrabberImpl.
 
+* ```VideoFrame```: This class is a storage object for video frames pushed into the queue.
 
 ## Authors:
 Avi Saranga 
