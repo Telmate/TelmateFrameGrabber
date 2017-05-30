@@ -1,6 +1,6 @@
-#TelmateFrameGrabber
+# TelmateFrameGrabber
 
-##Introduction:
+## Introduction:
 
 This module implements a Kurento endpoint frames grabber.
 
@@ -11,7 +11,7 @@ containing the frame data and saves it to disk.
 A instance module is created for each Kurento endpoint.
 
  
-##Compiling:
+## Compiling:
 
 All basic Kurento libraries are needed as mentioned in [How to Develop Kurento Modules](http://doc-kurento.readthedocs.io/en/stable/mastering/develop_kurento_modules.html)
 
@@ -39,7 +39,7 @@ mvn compile exec:java
 
 ```
 
-##Public Methods:
+## Public Methods:
 
 #### void setSnapInterval(int snapInterval): 
 Optional, Recommended, Sets the snapshot interval (in milliseconds). Defaults to 1000ms.
