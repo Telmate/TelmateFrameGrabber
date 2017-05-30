@@ -58,7 +58,13 @@ void TelmateFrameGrabberOpenCVImpl::process(cv::Mat &mat)
         }
 
 }
-
+/*
+ * This function is executed inside the queueHandler thread as a main() function.
+ * It pops a VideoFrame from the framequeue and saves it to disk.
+ * a boost scoped_lock is implemented to ensure the queue is emptied to disk before
+ * the destructor is executed. a 1 second sleep is implemented inside the while() loop
+ * to ensure the cpu isn't exhausted while the queue is empty.
+ */
 void TelmateFrameGrabberOpenCVImpl::queueHandler()
 {
     VideoFrame *ptrVf;
@@ -80,10 +86,19 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler()
                 --this->queueLength;
 
                 std::string filename = std::to_string(this->framesCounter) + "_" + ptrVf->ts + ".png";
-                std::string filepath = this->storagePath + "/" + this->epName + "/frames_" + this->getCurrentTimestampString();
-                std::string fullpath = filepath + "/" + filename;
-                boost::filesystem::path dir(filepath.c_str());
-                boost::filesystem::create_directories(dir);
+
+                if(this->storagePathSubdir.size() == 0) {
+
+                    this->storagePathSubdir = this->storagePath + "/frames_" + this->getCurrentTimestampString();
+                    boost::filesystem::path dir(this->storagePathSubdir.c_str());
+
+                    if(!boost::filesystem::is_directory(dir)) {
+                        /* Directory does not exist, create it */
+                        boost::filesystem::create_directories(dir);
+                    }
+                }
+
+                std::string fullpath = this->storagePathSubdir  + "/" + filename;
 
                 cv::imwrite(fullpath.c_str(),ptrVf->mat,params);
                 ptrVf->mat.release();

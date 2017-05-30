@@ -68,6 +68,7 @@ private:
 
     long lastQueueTimeStamp;
     int queueLength;
+    std::string storagePathSubdir;
 
     void queueHandler();
     std::string getCurrentTimestampString();
