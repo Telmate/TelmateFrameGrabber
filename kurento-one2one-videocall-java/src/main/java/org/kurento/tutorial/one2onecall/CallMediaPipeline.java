@@ -44,6 +44,8 @@ public class CallMediaPipeline {
   private TelmateFrameGrabber TelmateFrameGrabber1 = null;
   private TelmateFrameGrabber TelmateFrameGrabber2 = null;
 
+  private int snapinterval = 3000;
+  private String stoagePath = "/tmp/";
   public CallMediaPipeline(KurentoClient kurento) {
 
     try {
@@ -53,14 +55,22 @@ public class CallMediaPipeline {
       TelmateFrameGrabber1 = new TelmateFrameGrabber.Builder(pipeline).build();
       TelmateFrameGrabber2 = new TelmateFrameGrabber.Builder(pipeline).build();
 
-
+      /* First endpoint */
       callerWebRtcEp.connect(TelmateFrameGrabber1);
       TelmateFrameGrabber1.connect(calleeWebRtcEp);
-      log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + TelmateFrameGrabber1.getSnapInterval());
 
+      TelmateFrameGrabber1.setSnapInterval(snapinterval);
+      TelmateFrameGrabber1.setWebRtcEpName("TelmateFrameGrabber1");
+      TelmateFrameGrabber1.setStoragePath(stoagePath + "/TelmateFrameGrabber1");
+
+
+      /* Second endpoint */
       calleeWebRtcEp.connect(TelmateFrameGrabber2);
       TelmateFrameGrabber2.connect(calleeWebRtcEp);
 
+      TelmateFrameGrabber2.setSnapInterval(snapinterval);
+      TelmateFrameGrabber2.setWebRtcEpName("TelmateFrameGrabber2");
+      TelmateFrameGrabber2.setStoragePath(stoagePath + "/TelmateFrameGrabber2");
       
     } catch (Throwable t) {
       if (this.pipeline != null) {

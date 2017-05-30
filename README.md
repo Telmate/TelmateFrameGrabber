@@ -21,7 +21,7 @@ to ensure speed and proper usability under system load and slow IO as the Kurent
 
 All basic Kurento libraries are needed as mentioned in [How to Develop Kurento Modules](http://doc-kurento.readthedocs.io/en/stable/mastering/develop_kurento_modules.html)
 
-Please make sure Boost C++ and OpenCV are installed
+Please make sure Boost C++ and OpenCV are installed, all -dev packages are installed.
 
 To build the Java bindings, Maven is needed. 
 
@@ -32,7 +32,7 @@ git clone https://github.com/avis/TelmateFrameGrabber
 ```
 cd TelmateFrameGrabber
 mkdir build # a place to build the code in.
-cmake -DCMAKE_INSTALL_PREFIX=/usr .. # TO create the c++ code
+cmake -DCMAKE_INSTALL_PREFIX=/usr .. # TO generate the C++ code bindings.
 cmake .. -DGENERATE_JAVA_CLIENT_PROJECT=TRUE # To generate the Java bindings.
 make
 make install
@@ -44,6 +44,20 @@ cd java
 mvn compile exec:java
 
 ```
+
+## Testing:
+
+The kurento-one2one-videocall-java includes a modified version of the original proof of concept one2one video call application.
+This application - once executed, exposes an http server on port 8443. For testing purposes, the HTTP service this application exposes could be accessed using two different browser tabs on a client machine and provide a simple loopback video call where the two endpoints are really the same video camera and microphone.
+The app will start the TelmateFrameGrabber plugin and save PNG snapshots to the Kurento media server /tmp directory.
+To compile and execute the app:
+```
+export KURENTO_SERVER_ADDRESS=192.168.1.1
+mvn compile exec:java -Dkms.url=ws://$KURENTO_SERVER_ADDRESS:8888/kurento
+
+```
+
+
 
 ## Public Methods:
 
@@ -67,7 +81,7 @@ mvn compile exec:java
 * ```VideoFrame```: This class is a storage object for video frames pushed into the queue.
 
 ## Authors:
-Avi Saranga 
+Avi Saranga - Telmate.
 
 
 ## Licensing:
