@@ -28,6 +28,12 @@
 
 #include <boost/filesystem.hpp>
 
+#define FGFMT_JPEG  0x0
+#define FGFMT_PNG   0x1
+
+#define FG_JPEG_QUALITY 20
+#define FG_PNG_QUALITY  9
+
 namespace kurento
 {
 
@@ -47,6 +53,7 @@ public:
   int snapInterval;
   std::string storagePath;
   std::string epName;
+  int outputFormat; // 0x0=JPEG 0x1=PNG
 
 protected:
     std::shared_ptr<MediaObject> getSharedPtr()

@@ -39,6 +39,10 @@ void TelmateFrameGrabberImpl::setSnapInterval(int snapInterval) {
     return;
 }
 
+void TelmateFrameGrabberImpl::setOutputFormat(int outputFormat) {
+    TelmateFrameGrabberOpenCVImpl::outputFormat = outputFormat;
+    return;
+}
 std::string TelmateFrameGrabberImpl::getStoragePath() {
     return TelmateFrameGrabberOpenCVImpl::storagePath;
 }

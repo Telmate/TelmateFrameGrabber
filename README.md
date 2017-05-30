@@ -71,6 +71,7 @@ mvn compile exec:java -Dkms.url=ws://$KURENTO_SERVER_ADDRESS:8888/kurento
 
 * ```std::string getStoragePath()```: Returns the current configured snapshots path.
 
+* ``` void setOutputFormat(int outputFormat)```: Optional, Recommended, Sets the output format for images (0x0=JPEG 0x1=PNG). Defaults to JPEG.
 
 ## Classes:
 

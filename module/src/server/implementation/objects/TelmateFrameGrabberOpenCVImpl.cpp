@@ -16,6 +16,7 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl()
     this->epName = "EP_NAME_UNINITIALIZED";
     this->storagePath = "/tmp";
     this->framesCounter = 0;
+    this->outputFormat = FGFMT_JPEG;
 
     this->thr = new boost::thread(boost::bind(&TelmateFrameGrabberOpenCVImpl::queueHandler, this));
 
@@ -43,7 +44,6 @@ TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl()
  */
 void TelmateFrameGrabberOpenCVImpl::process(cv::Mat &mat)
 {
-    GST_DEBUG("ENDPOINT NAME: %s", this->epName.c_str());
 
         if ((this->getCurrentTimestampLong() - this->lastQueueTimeStamp) > this->snapInterval) {
 
@@ -69,11 +69,7 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler()
 {
     VideoFrame *ptrVf;
     cv::Mat image;
-    std::vector<int> params;
 
-    /* Set PNG parameters, compression etc. */
-    params.push_back(CV_IMWRITE_PNG_COMPRESSION);
-    params.push_back(9);
 
     boost::mutex::scoped_lock lock(workerThreadMutex);
 
@@ -82,10 +78,34 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler()
         if (!this->frameQueue->empty()) {
 
             empty_queue:
+                std::vector<int> params;
+                std::string image_extension;
+
                 this->frameQueue->pop(ptrVf);
                 --this->queueLength;
 
-                std::string filename = std::to_string(this->framesCounter) + "_" + ptrVf->ts + ".png";
+                switch(this->outputFormat) {
+                    case FGFMT_JPEG:
+                        /* Set jpeg params */
+                        params.push_back(CV_IMWRITE_JPEG_QUALITY);
+                        params.push_back(FG_JPEG_QUALITY);
+                        image_extension = ".jpeg";
+                        break;
+                    case FGFMT_PNG:
+                        /* Set PNG parameters, compression etc. */
+                        params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+                        params.push_back(FG_PNG_QUALITY);
+                        image_extension = ".png";
+                        break;
+                    default:
+                        /* Defaults to jpeg */
+                        params.push_back(CV_IMWRITE_JPEG_QUALITY);
+                        params.push_back(FG_JPEG_QUALITY);
+                        image_extension = ".jpeg";
+                        break;
+                }
+
+                std::string filename = std::to_string(this->framesCounter) + "_" + ptrVf->ts + image_extension;
 
                 if(this->storagePathSubdir.size() == 0) {
 
@@ -100,7 +120,15 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler()
 
                 std::string fullpath = this->storagePathSubdir  + "/" + filename;
 
-                cv::imwrite(fullpath.c_str(),ptrVf->mat,params);
+
+                try {
+                    cv::imwrite(fullpath.c_str(),ptrVf->mat,params);
+                }
+                catch (...) {
+                    throw KurentoException (NOT_IMPLEMENTED, "TelmateFrameGrabberOpenCVImpl::queueHandler() imgwrite() failed.\n");
+
+                }
+
                 ptrVf->mat.release();
 
                 delete ptrVf;

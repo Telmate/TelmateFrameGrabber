@@ -55,6 +55,7 @@ public:
 
   int getSnapInterval();
   void setSnapInterval(int snapInterval);
+  void setOutputFormat(int outputFormat);
   std::string getStoragePath();
   void setStoragePath(const std::string &path);
   void setWebRtcEpName(const std::string &epName);
