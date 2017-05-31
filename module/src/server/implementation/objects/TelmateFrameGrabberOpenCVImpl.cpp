@@ -2,39 +2,45 @@
 
 #include "TelmateFrameGrabberOpenCVImpl.hpp"
 #include <KurentoException.hpp>
+#include <gst/gst.h>
 
-namespace pt = boost::posix_time;
+/*#define GST_CAT_DEFAULT kurento_media_set
+GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
+#define GST_DEFAULT_NAME "KurentoMediaSet"*/
 
 namespace kurento {
 
 TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl()
 {
-
     this->thrLoop = true;
-    this->frameQueue = new boost::lockfree::queue<VideoFrame *>(0);
     this->snapInterval = 1000;
     this->epName = "EP_NAME_UNINITIALIZED";
     this->storagePath = "/tmp";
     this->framesCounter = 0;
     this->outputFormat = FGFMT_JPEG;
+    this->lastQueueTimeStamp = 0;
+    this->queueLength = 0;
 
+    this->frameQueue = new boost::lockfree::queue<VideoFrame *>(0);
     this->thr = new boost::thread(boost::bind(&TelmateFrameGrabberOpenCVImpl::queueHandler, this));
 
-    GST_ERROR("TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() called");
+    /*GST_DEBUG_CATEGORY_INIT (GST_CAT_DEFAULT, GST_DEFAULT_NAME, 0, GST_DEFAULT_NAME);*/
+
+    GST_DEBUG("TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl()");
 }
 
 
 TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl()
 {
-
-    this->thrLoop = false;
     this->thr->join();
+    this->thrLoop = false;
     delete this->frameQueue;
     this->frameQueue = NULL;
+
     delete this->thr;
     this->thr = NULL;
 
-    GST_ERROR("TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() called");
+    GST_DEBUG("TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() called, %s ", this->epName.c_str());
 }
 
 /*
@@ -44,14 +50,12 @@ TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl()
  */
 void TelmateFrameGrabberOpenCVImpl::process(cv::Mat &mat)
 {
+        if ((this->getCurrentTimestampLong() - this->lastQueueTimeStamp) >= this->snapInterval) {
 
-        if ((this->getCurrentTimestampLong() - this->lastQueueTimeStamp) > this->snapInterval) {
-
+            this->lastQueueTimeStamp = this->getCurrentTimestampLong();
             VideoFrame *ptrVf = new VideoFrame();
             ptrVf->mat = mat.clone();
-            ptrVf->ts = this->getCurrentTimestampString();
-            this->lastQueueTimeStamp = this->getCurrentTimestampLong();
-
+            ptrVf->ts = std::to_string((long)this->lastQueueTimeStamp);
             this->frameQueue->push(ptrVf);
             ++this->queueLength;
             ++this->framesCounter;
@@ -67,20 +71,19 @@ void TelmateFrameGrabberOpenCVImpl::process(cv::Mat &mat)
  */
 void TelmateFrameGrabberOpenCVImpl::queueHandler()
 {
+
     VideoFrame *ptrVf;
     cv::Mat image;
-
-
-    boost::mutex::scoped_lock lock(workerThreadMutex);
+    std::vector<int> params;
+    std::string image_extension;
 
     while(this->thrLoop) {
 
         if (!this->frameQueue->empty()) {
 
             empty_queue:
-                std::vector<int> params;
-                std::string image_extension;
 
+                params.clear(); // clear the vector since the last iteration.
                 this->frameQueue->pop(ptrVf);
                 --this->queueLength;
 
@@ -105,29 +108,28 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler()
                         break;
                 }
 
-                std::string filename = std::to_string(this->framesCounter) + "_" + ptrVf->ts + image_extension;
+                std::string filename = std::to_string((long)this->framesCounter) + "_" + ptrVf->ts + image_extension;
 
-                if(this->storagePathSubdir.size() == 0) {
-
+                if(this->storagePathSubdir.empty()) {
                     this->storagePathSubdir = this->storagePath + "/frames_" + this->getCurrentTimestampString();
+                    boost::filesystem::path dir(this->storagePathSubdir.c_str());
+                    if(!boost::filesystem::create_directories(dir)) {
+                        GST_ERROR("%s create_directories() failed for: %s", this->epName.c_str(), this->storagePathSubdir.c_str());
+                    }
                 }
 
-                boost::filesystem::path dir(this->storagePathSubdir.c_str());
-                boost::filesystem::create_directories(dir);
-                GST_ERROR("boost::filesystem::create_directories(dir);");
-
                 std::string fullpath = this->storagePathSubdir  + "/" + filename;
-
 
                 try {
                     cv::imwrite(fullpath.c_str(),ptrVf->mat,params);
                 }
                 catch (...) {
-                    throw KurentoException (NOT_IMPLEMENTED, "TelmateFrameGrabberOpenCVImpl::queueHandler() imgwrite() failed.\n");
+
+                    throw KurentoException (NOT_IMPLEMENTED, "TelmateFrameGrabberOpenCVImpl::queueHandler() imgwrite() failed. \n");
                     GST_ERROR("TelmateFrameGrabberOpenCVImpl::queueHandler() imgwrite() failed.");
                 }
 
-                ptrVf->mat.release();
+                ptrVf->mat.release(); // release internal memory allocations
 
                 delete ptrVf;
                 ptrVf = NULL;
@@ -142,8 +144,6 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler()
         goto empty_queue;
         GST_ERROR("Emptying frameQueue..");
     }
-
-    lock.unlock();
 
 }
 

@@ -8,7 +8,7 @@
 #include <OpenCVProcess.hpp>
 #include "TelmateFrameGrabber.hpp"
 #include <EventHandler.hpp>
-#include <gst/gst.h>
+
 #include "VideoFrame.hpp"
 
 #include <boost/asio/io_service.hpp>
@@ -49,7 +49,7 @@ public:
   virtual void process (cv::Mat &mat);
 
 
-  int framesCounter;
+  boost::atomic<int> framesCounter;
   int snapInterval;
   std::string storagePath;
   std::string epName;
@@ -73,8 +73,8 @@ private:
     boost::thread* thr;
     boost::atomic<bool> thrLoop;
 
-    long lastQueueTimeStamp;
-    int queueLength;
+    boost::atomic<long> lastQueueTimeStamp;
+    boost::atomic<int> queueLength;
     std::string storagePathSubdir;
 
     void queueHandler();

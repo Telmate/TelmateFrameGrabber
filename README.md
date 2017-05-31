@@ -7,21 +7,21 @@ This module implements a Kurento endpoint frames grabber.
 The module uses the Kurento OpenCV support and receive reference to a opencv [cv::mat](http://docs.opencv.org/3.1.0/d3/d63/classcv_1_1Mat.html) object containing the frame data and saves it to disk.
 
 An instance of this module is created for each Kurento endpoint, the instance implements a ```process()``` function which is called by the Kurento plugin-core for each frame.
-A ```process()``` function creates a VideoFrame object in heap, performs a deep copy of the Mat object and adds a timestamp.
+A ```process()``` function creates a VideoFrame object in the heap, performs a deep copy of the Mat object and adds a timestamp.
 The VideoFrame object ptr is then pushed into a variable sized ```boost::lockfree::queue```.
 
 Upon plugin initialization a queue handler thread is created with thread main function set to ```queueHandler()```. This function pops VideoFrames pointers from the ```boost::lockfree::queue``` and uses the Mat object data to save a PNG image to the disk.
 
 ## Design
 The plugin is designed around a lock-free thread-safe producer-consumer pattern
-to ensure speed and proper usability under system load and slow IO as the Kurento plugin subsystem is implemented serially. (plugins are actually filters and each video frame processed by the filter). 
+to ensure speed and proper usability under system load and slow IO as the Kurento plugin subsystem is implemented serially. (plugins are actually filters) each video frame through the plugin potentially creating an issue. 
  
  
 ## Compiling:
 
 All basic Kurento libraries are needed as mentioned in [How to Develop Kurento Modules](http://doc-kurento.readthedocs.io/en/stable/mastering/develop_kurento_modules.html)
 
-Please make sure Boost C++ and OpenCV are installed, all -dev packages are installed.
+Please make sure Boost C++ and OpenCV and all -dev packages are installed.
 
 To build the Java bindings, Maven is needed. 
 
