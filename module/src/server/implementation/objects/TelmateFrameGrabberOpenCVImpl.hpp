@@ -60,6 +60,13 @@ class TelmateFrameGrabberOpenCVImpl : public virtual OpenCVProcess {
 
 
  private:
+    class StaticConstructor {
+     public:
+        StaticConstructor();
+    };
+
+    static StaticConstructor staticConstructor;
+
     boost::asio::io_service ioService;
     boost::thread_group tp;
     boost::lockfree::queue<VideoFrame*> *frameQueue;
@@ -75,6 +82,10 @@ class TelmateFrameGrabberOpenCVImpl : public virtual OpenCVProcess {
     int64 getCurrentTimestampLong();
 
     boost::mutex workerThreadMutex;
+
+
+
+
 };
 
 }   // namespace kurento

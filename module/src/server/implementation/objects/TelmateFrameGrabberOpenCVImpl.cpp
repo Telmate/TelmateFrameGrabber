@@ -7,9 +7,9 @@
 #include <string>
 
 
-#define GST_CAT_DEFAULT frame_grabber
+#define GST_CAT_DEFAULT kurento_telmate_frame_grabber_opencv_impl
 GST_DEBUG_CATEGORY_STATIC(GST_CAT_DEFAULT);
-#define GST_DEFAULT_NAME "FrameGrabber"
+#define GST_DEFAULT_NAME "KurentoTelmateFrameGrabberOpenCVImpl"
 
 namespace kurento {
 
@@ -156,6 +156,14 @@ long TelmateFrameGrabberOpenCVImpl::getCurrentTimestampLong() {
 
     gettimeofday(&tp, NULL);
     return (tp.tv_sec * 1000 + tp.tv_usec / 1000);
+}
+
+TelmateFrameGrabberOpenCVImpl::StaticConstructor
+       TelmateFrameGrabberOpenCVImpl::staticConstructor;
+
+TelmateFrameGrabberOpenCVImpl::StaticConstructor::StaticConstructor() {
+    GST_DEBUG_CATEGORY_INIT(GST_CAT_DEFAULT, GST_DEFAULT_NAME, 0,
+                                GST_DEFAULT_NAME);
 }
 
 
