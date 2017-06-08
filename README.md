@@ -14,24 +14,25 @@ Upon plugin initialization a queue handler thread is created with thread main fu
 
 ## Design
 The plugin is designed around a lock-free thread-safe producer-consumer pattern
-to ensure speed and proper usability under system load and slow IO as the Kurento plugin subsystem is implemented serially. (plugins are actually filters) each video frame through the plugin potentially creating an issue. 
- 
- 
+to ensure speed and proper usability under system load and slow IO as the Kurento plugin subsystem is implemented serially. (plugins are actually filters) each video frame through the plugin potentially creating an issue.
+
+
 ## Compiling:
 
 All basic Kurento libraries are needed as mentioned in [How to Develop Kurento Modules](http://doc-kurento.readthedocs.io/en/stable/mastering/develop_kurento_modules.html)
 
 Please make sure Boost C++ and OpenCV and all -dev packages are installed.
 
-To build the Java bindings, Maven is needed. 
+To build the Java bindings, Maven is needed.
 
 ```
 git clone https://github.com/avis/TelmateFrameGrabber
 ```
 
 ```
-cd TelmateFrameGrabber
+cd TelmateFrameGrabber/module
 mkdir build # a place to build the code in.
+cd build
 cmake -DCMAKE_INSTALL_PREFIX=/usr .. # TO generate the C++ code bindings.
 cmake .. -DGENERATE_JAVA_CLIENT_PROJECT=TRUE # To generate the Java bindings.
 make
@@ -40,7 +41,7 @@ make install
 
 To comilple the java bindings:
 ```
-cd java 
+cd java
 mvn compile exec:java
 
 ```
@@ -67,7 +68,7 @@ mvn compile exec:java -Dkms.url=ws://$KURENTO_SERVER_ADDRESS:8888/kurento
 
 * ```void setWebRtcEpName(const std::string &epName)```: Optional, Sets the endpoint name. Defaults to NULL.
 
-* ```int getSnapInterval()```: Returns the current configured snapshot interval. 
+* ```int getSnapInterval()```: Returns the current configured snapshot interval.
 
 * ```std::string getStoragePath()```: Returns the current configured snapshots path.
 
@@ -75,7 +76,7 @@ mvn compile exec:java -Dkms.url=ws://$KURENTO_SERVER_ADDRESS:8888/kurento
 
 ## Classes:
 
-* ```TelmateFrameGrabberImpl```: Kurento Plugin. This class is an interface between the Kurento plugin core and the actual plugin. 
+* ```TelmateFrameGrabberImpl```: Kurento Plugin. This class is an interface between the Kurento plugin core and the actual plugin.
 
 * ```TelmateFrameGrabberOpenCVImpl```: This Class implements the plugin, Interacts with TelmateFrameGrabberImpl.
 
