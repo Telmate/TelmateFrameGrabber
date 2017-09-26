@@ -39,6 +39,10 @@ void TelmateFrameGrabberImpl::release() {
 
     std::shared_ptr<MediaObject> p = TelmateFrameGrabberOpenCVImpl::getSharedPtr();
     p.reset();
+
+    GST_DEBUG("TelmateFrameGrabberImpl::"
+                      "release() "
+                      "called, %s ", this->epName.c_str());
     return;
 }
 
