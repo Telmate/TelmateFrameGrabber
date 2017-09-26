@@ -29,7 +29,7 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() {
     this->thr = new boost::thread(boost::bind(
             &TelmateFrameGrabberOpenCVImpl::queueHandler, this));
     this->thr->detach();
-    GST_DEBUG("TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl()");
+    GST_INFO("TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl()");
 }
 
 
@@ -39,12 +39,13 @@ TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() {
 
     while(queueLength > 0) {
         boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
+
     }
 
     delete this->frameQueue;
     this->frameQueue = NULL;
 
-    GST_DEBUG("TelmateFrameGrabberOpenCVImpl::"
+    GST_INFO("TelmateFrameGrabberOpenCVImpl::"
                       "~TelmateFrameGrabberOpenCVImpl() "
                       "called, %s ", this->epName.c_str());
 }
