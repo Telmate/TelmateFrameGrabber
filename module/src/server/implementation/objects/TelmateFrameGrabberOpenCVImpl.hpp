@@ -43,11 +43,15 @@ class TelmateFrameGrabberOpenCVImpl : public virtual OpenCVProcess {
 
     virtual void process(cv::Mat &mat);
 
+    void release();
+
     boost::atomic<int> framesCounter;
     int snapInterval;
     std::string storagePath;
     std::string epName;
     int outputFormat;     // 0x0=JPEG 0x1=PNG
+
+
 
  protected:
     std::shared_ptr<MediaObject> getSharedPtr() {

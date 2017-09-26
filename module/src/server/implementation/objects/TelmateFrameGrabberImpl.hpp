@@ -51,6 +51,9 @@ class TelmateFrameGrabberImpl :
 
     virtual void Serialize(JsonSerializer &serializer);
 
+
+    void release();
+
     int getSnapInterval();
     void setSnapInterval(int snapInterval);
     void setOutputFormat(int outputFormat);
@@ -65,6 +68,7 @@ class TelmateFrameGrabberImpl :
     };
 
     static StaticConstructor staticConstructor;
+
 };
 
 }   // namespace telmateframegrabber
