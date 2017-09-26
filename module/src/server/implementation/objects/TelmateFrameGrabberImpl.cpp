@@ -23,9 +23,25 @@ TelmateFrameGrabberImpl::TelmateFrameGrabberImpl(
         std::shared_ptr<MediaPipeline> mediaPipeline) :
         OpenCVFilterImpl(config,
         std::dynamic_pointer_cast<MediaPipelineImpl> (mediaPipeline)) {
+
+    GST_DEBUG("TelmateFrameGrabberImpl::"
+                      "TelmateFrameGrabberImpl() "
+                      "called, %s ", this->epName.c_str());
+
 }
+
 TelmateFrameGrabberImpl::~TelmateFrameGrabberImpl() {
+
+
+
 }
+void TelmateFrameGrabberImpl::release() {
+
+    std::shared_ptr<MediaObject> p = TelmateFrameGrabberOpenCVImpl::getSharedPtr();
+    p.reset();
+    return;
+}
+
 
 int TelmateFrameGrabberImpl::getSnapInterval() {
     return TelmateFrameGrabberOpenCVImpl::snapInterval;
@@ -55,10 +71,11 @@ void TelmateFrameGrabberImpl::setWebRtcEpName(const std::string &epName) {
     return;
 }
 
-    MediaObjectImpl *
-TelmateFrameGrabberImplFactory::createObject(
+MediaObjectImpl *
+    TelmateFrameGrabberImplFactory::createObject(
         const boost::property_tree::ptree &config,
         std::shared_ptr<MediaPipeline> mediaPipeline) const {
+
   return new TelmateFrameGrabberImpl(config, mediaPipeline);
 }
 

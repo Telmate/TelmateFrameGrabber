@@ -14,6 +14,8 @@ GST_DEBUG_CATEGORY_STATIC(GST_CAT_DEFAULT);
 namespace kurento {
 
 TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() {
+
+
     this->thrLoop = true;
     this->snapInterval = 1000;
     this->epName = "EP_NAME_UNINITIALIZED";
@@ -26,24 +28,27 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() {
     this->frameQueue = new boost::lockfree::queue<VideoFrame *>(0);
     this->thr = new boost::thread(boost::bind(
             &TelmateFrameGrabberOpenCVImpl::queueHandler, this));
-
+    this->thr->detach();
     GST_DEBUG("TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl()");
 }
 
 
 TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() {
-    this->thr->join();
+
     this->thrLoop = false;
+
+    while(queueLength > 0) {
+        boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
+    }
+
     delete this->frameQueue;
     this->frameQueue = NULL;
-
-    delete this->thr;
-    this->thr = NULL;
 
     GST_DEBUG("TelmateFrameGrabberOpenCVImpl::"
                       "~TelmateFrameGrabberOpenCVImpl() "
                       "called, %s ", this->epName.c_str());
 }
+
 
 /*
  * This function will be called with each new frame. mat variable
@@ -77,7 +82,6 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
 
     while (this->thrLoop) {
         if (!this->frameQueue->empty()) {
-            empty_queue:
 
                 params.clear();     // clear the vector since the last iteration.
                 this->frameQueue->pop(ptrVf);
@@ -133,10 +137,6 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
         }
     }
 
-    while (!this->frameQueue->empty()) {
-        GST_ERROR("Emptying frameQueue..");
-        goto empty_queue;
-    }
 }
 
 std::string TelmateFrameGrabberOpenCVImpl::getCurrentTimestampString() {
