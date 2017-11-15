@@ -76,13 +76,14 @@ void TelmateFrameGrabberOpenCVImpl::process(cv::Mat &mat) {
  * to ensure the cpu isn't exhausted while the queue is empty.
  */
 void TelmateFrameGrabberOpenCVImpl::queueHandler() {
-    VideoFrame *ptrVf;
-    cv::Mat image;
-    std::vector<int> params;
-    std::string image_extension;
+        VideoFrame *ptrVf;
+        cv::Mat image;
+        std::vector<int> params;
+        std::string image_extension;
 
-    while (this->thrLoop) {
-        if (!this->frameQueue->empty()) {
+        while (this->thrLoop) {
+
+            if (this->queueLength > 0) {
 
                 params.clear();     // clear the vector since the last iteration.
                 this->frameQueue->pop(ptrVf);
@@ -109,34 +110,40 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
                         break;
                 }
 
-                std::string filename = std::to_string((long)this->framesCounter) + "_" + ptrVf->ts + image_extension;
+                std::string filename =
+                        std::to_string((long) this->framesCounter) + "_" + ptrVf->ts + image_extension;
 
                 if (this->storagePathSubdir.empty()) {
                     this->storagePathSubdir = this->storagePath + "/frames_" + this->getCurrentTimestampString();
                     boost::filesystem::path dir(this->storagePathSubdir.c_str());
                     if (!boost::filesystem::create_directories(dir)) {
-                        GST_ERROR("%s create_directories() failed for: %s", this->epName.c_str(), this->storagePathSubdir.c_str());
+                        GST_ERROR("%s create_directories() failed for: %s", this->epName.c_str(),
+                                  this->storagePathSubdir.c_str());
                     }
                 }
 
-                std::string fullpath = this->storagePathSubdir  + "/" + filename;
+                std::string fullpath = this->storagePathSubdir + "/" + filename;
 
                 try {
                     cv::imwrite(fullpath.c_str(), ptrVf->mat, params);
                 }
                 catch (...) {
                     GST_ERROR("TelmateFrameGrabberOpenCVImpl::queueHandler() imgwrite() failed.");
-                    throw KurentoException(NOT_IMPLEMENTED, "TelmateFrameGrabberOpenCVImpl::queueHandler() imgwrite() failed. \n");
+                    throw KurentoException(NOT_IMPLEMENTED,
+                                           "TelmateFrameGrabberOpenCVImpl::queueHandler() imgwrite() failed. \n");
                 }
 
                 ptrVf->mat.release();   // release internal memory allocations
 
                 delete ptrVf;
                 ptrVf = NULL;
-        } else {
-            boost::this_thread::sleep(boost::posix_time::seconds(1));
+            } else {
+                boost::this_thread::sleep(boost::posix_time::seconds(1));
+            }
         }
-    }
+
+
+
 
 }
 
