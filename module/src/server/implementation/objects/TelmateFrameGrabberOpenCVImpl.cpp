@@ -15,7 +15,6 @@ namespace kurento {
 
 TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() {
 
-
     this->thrLoop = true;
     this->snapInterval = 1000;
     this->epName = "EP_NAME_UNINITIALIZED";
@@ -25,11 +24,15 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() {
     this->lastQueueTimeStamp = 0;
     this->queueLength = 0;
 
-    this->frameQueue = new boost::lockfree::queue<VideoFrame *>(0);
+    this->frameQueue = new BlockingReaderWriterQueue<VideoFrame *>(QUEUE_BASE_ALLOC);
     this->thr = new boost::thread(boost::bind(
             &TelmateFrameGrabberOpenCVImpl::queueHandler, this));
     this->thr->detach();
-    GST_INFO("TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl()");
+
+
+
+
+    GST_INFO("FrameGrabber Constructor was called for %s", this->epName.c_str());
 }
 
 
@@ -37,17 +40,8 @@ TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() {
 
     this->thrLoop = false;
 
-    while(queueLength > 0) {
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
+    GST_INFO("FrameGrabber Destructor was called for %s", this->epName.c_str());
 
-    }
-
-    delete this->frameQueue;
-    this->frameQueue = NULL;
-
-    GST_INFO("TelmateFrameGrabberOpenCVImpl::"
-                      "~TelmateFrameGrabberOpenCVImpl() "
-                      "called, %s ", this->epName.c_str());
 }
 
 
@@ -63,7 +57,7 @@ void TelmateFrameGrabberOpenCVImpl::process(cv::Mat &mat) {
             VideoFrame *ptrVf = new VideoFrame();
             ptrVf->mat = mat.clone();
             ptrVf->ts = std::to_string(this->lastQueueTimeStamp);
-            this->frameQueue->push(ptrVf);
+            this->frameQueue->enqueue(ptrVf);
             ++this->queueLength;
             ++this->framesCounter;
         }
@@ -81,12 +75,10 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
         std::vector<int> params;
         std::string image_extension;
 
-        while (this->thrLoop) {
-
-            if (this->queueLength > 0) {
+        while (this->thrLoop && this->frameQueue->wait_dequeue_timed(ptrVf,std::chrono::milliseconds(5))) {
 
                 params.clear();     // clear the vector since the last iteration.
-                this->frameQueue->pop(ptrVf);
+                this->lastQueueTimeStamp = this->getCurrentTimestampLong();
                 --this->queueLength;
 
                 switch (this->outputFormat) {
@@ -128,7 +120,7 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
                     cv::imwrite(fullpath.c_str(), ptrVf->mat, params);
                 }
                 catch (...) {
-                    GST_ERROR("TelmateFrameGrabberOpenCVImpl::queueHandler() imgwrite() failed.");
+                    GST_ERROR("::queueHandler() imgwrite() failed.");
                     throw KurentoException(NOT_IMPLEMENTED,
                                            "TelmateFrameGrabberOpenCVImpl::queueHandler() imgwrite() failed. \n");
                 }
@@ -137,15 +129,22 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
 
                 delete ptrVf;
                 ptrVf = NULL;
-            } else {
-                boost::this_thread::sleep(boost::posix_time::seconds(1));
-            }
+
+        }
+
+        while(this->frameQueue->try_dequeue(ptrVf)) { /* Empty the queue post processing if the dtor was called */
+            --this->queueLength;
+            delete ptrVf;
+            ptrVf = NULL;
+
         }
 
 
-
+        delete this->frameQueue;
+        this->frameQueue = NULL;
 
 }
+
 
 std::string TelmateFrameGrabberOpenCVImpl::getCurrentTimestampString() {
     struct timeval tp;
@@ -160,7 +159,6 @@ std::string TelmateFrameGrabberOpenCVImpl::getCurrentTimestampString() {
 
 long TelmateFrameGrabberOpenCVImpl::getCurrentTimestampLong() {
     struct timeval tp;
-    std::stringstream sstr_ts;
 
     gettimeofday(&tp, NULL);
     return (tp.tv_sec * 1000 + tp.tv_usec / 1000);

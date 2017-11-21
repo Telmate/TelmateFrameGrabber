@@ -16,7 +16,9 @@
 #include <boost/bind.hpp>
 
 #include <boost/thread/thread.hpp>
-#include <boost/lockfree/queue.hpp>
+
+#include "atomicops.h"
+#include "readerwriterqueue.h"
 
 #include <boost/atomic.hpp>
 
@@ -32,6 +34,14 @@
 
 #define FG_JPEG_QUALITY 20
 #define FG_PNG_QUALITY  9
+
+#define MAX_IDLE_QUEUE_TIME_NS 30000
+#define QUEUE_BASE_ALLOC 1000
+
+using namespace moodycamel;
+
+
+
 
 namespace kurento {
 
@@ -73,7 +83,8 @@ class TelmateFrameGrabberOpenCVImpl : public virtual OpenCVProcess {
 
     boost::asio::io_service ioService;
     boost::thread_group tp;
-    boost::lockfree::queue<VideoFrame*> *frameQueue;
+
+    BlockingReaderWriterQueue<VideoFrame*> *frameQueue;
     boost::thread* thr;
     boost::atomic<bool> thrLoop;
 
