@@ -3,6 +3,8 @@
 #ifndef __TELMATE_FRAME_GRABBER_OPENCV_IMPL_HPP__
 #define __TELMATE_FRAME_GRABBER_OPENCV_IMPL_HPP__
 
+#define NDEBUG 1
+
 #include <ctime>
 #include <iostream>
 #include <OpenCVProcess.hpp>
@@ -17,8 +19,7 @@
 
 #include <boost/thread/thread.hpp>
 
-#include "atomicops.h"
-#include "readerwriterqueue.h"
+#include "avisqueue.hpp"
 
 #include <boost/atomic.hpp>
 
@@ -36,9 +37,9 @@
 #define FG_PNG_QUALITY  9
 
 #define MAX_IDLE_QUEUE_TIME_NS 30000
-#define QUEUE_BASE_ALLOC 1000
+#define QUEUE_BASE_ELEMENT_ALLOC 1000
 
-using namespace moodycamel;
+//using namespace moodycamel;
 
 
 
@@ -84,7 +85,7 @@ class TelmateFrameGrabberOpenCVImpl : public virtual OpenCVProcess {
     boost::asio::io_service ioService;
     boost::thread_group tp;
 
-    BlockingReaderWriterQueue<VideoFrame*> *frameQueue;
+    avis_blocking_queue<VideoFrame*> *frameQueue;
     boost::thread* thr;
     boost::atomic<bool> thrLoop;
 
