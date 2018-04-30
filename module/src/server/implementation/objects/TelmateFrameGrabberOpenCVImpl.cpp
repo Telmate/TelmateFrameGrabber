@@ -132,6 +132,8 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
 
         }
 
+        boost::this_thread::sleep_for(boost::chrono::milliseconds(250));
+
         while(!this->frameQueue->empty()) {
 
             this->frameQueue->pop(ptrVf); // blocks
