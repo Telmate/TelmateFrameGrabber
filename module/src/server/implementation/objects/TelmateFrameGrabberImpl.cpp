@@ -25,27 +25,17 @@ TelmateFrameGrabberImpl::TelmateFrameGrabberImpl (const boost::property_tree::pt
 
 {
 
-    g_object_set (element, "filter-factory", "telmateframegrabberopencvimpl", NULL);
-    g_object_get (G_OBJECT (element), "filter", &telmateframegrabberopencvimpl, NULL);
+    GST_DEBUG("TelmateFrameGrabberImpl::TelmateFrameGrabberImpl() called");
 
-    if (telmateframegrabberopencvimpl == nullptr) {
-        throw KurentoException (MEDIA_OBJECT_NOT_AVAILABLE,
-                                "Media Object not available");
-    }
-
-    g_object_set (telmateframegrabberopencvimpl, "target-object",
-                  static_cast<kurento::TelmateFrameGrabberOpenCVImpl *> (this), NULL);
-
-    g_object_unref (telmateframegrabberopencvimpl);
-
-    pTelmateFrameGrabberOpenCVImpl = (TelmateFrameGrabberOpenCVImpl*) telmateframegrabberopencvimpl;
+    pTelmateFrameGrabberOpenCVImpl = new TelmateFrameGrabberOpenCVImpl();
 
 }
-
 
 int TelmateFrameGrabberImpl::cleanup()
 {
     pTelmateFrameGrabberOpenCVImpl->cleanup();
+    delete pTelmateFrameGrabberOpenCVImpl;
+    pTelmateFrameGrabberOpenCVImpl = NULL;
     return 1;
 }
 
