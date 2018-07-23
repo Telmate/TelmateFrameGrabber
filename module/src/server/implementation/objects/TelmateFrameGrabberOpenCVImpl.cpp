@@ -22,7 +22,7 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() {
     this->thrLoop = true;
     this->snapInterval = 1000;
     this->epName = "EP_NAME_UNINITIALIZED";
-    this->storagePath = "/tmp";
+    this->storagePath.clear(); //= NULL; /*"/tmp";*/
     this->framesCounter = 0;
     this->outputFormat = FGFMT_JPEG;
     this->lastQueueTimeStamp = 0;
@@ -103,6 +103,10 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
 
         while (this->thrLoop) {
 
+            if(this->storagePath.empty()) {
+                boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
+                continue;
+            }
             this->frameQueue->pop(ptrVf); // blocks
             params.clear();     // clear the vector since the last iteration.
             this->lastQueueTimeStamp = this->getCurrentTimestampLong();
