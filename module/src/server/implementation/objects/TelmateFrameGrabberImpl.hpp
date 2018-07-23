@@ -8,74 +8,77 @@
 #include <EventHandler.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include "TelmateFrameGrabberOpenCVImpl.hpp"
-#include <string>
 
-namespace kurento {
-namespace module {
-namespace telmate {
+namespace kurento
+{
+namespace module
+{
+namespace telmateframegrabber
+{
 class TelmateFrameGrabberImpl;
-}   // namespace telmateframegrabber
-}   // namespace module
-}   // namespace kurento
-
-namespace kurento {
-void Serialize(std::shared_ptr
-                <kurento::module::telmate::
-                TelmateFrameGrabberImpl> &object, JsonSerializer &serializer);
+} /* telmateframegrabber */
+} /* module */
 } /* kurento */
 
-namespace kurento {
+namespace kurento
+{
+void Serialize (std::shared_ptr<kurento::module::telmateframegrabber::TelmateFrameGrabberImpl> &object, JsonSerializer &serializer);
+} /* kurento */
+
+namespace kurento
+{
 class MediaPipelineImpl;
 } /* kurento */
 
-namespace kurento {
-namespace module {
-namespace telmate {
+namespace kurento
+{
+namespace module
+{
+namespace telmateframegrabber
+{
 
-class TelmateFrameGrabberImpl :
-        public OpenCVFilterImpl,
-        public virtual TelmateFrameGrabber,
-        public virtual TelmateFrameGrabberOpenCVImpl {
- public:
-    TelmateFrameGrabberImpl(const
-                            boost::property_tree::ptree &config,
-                            std::shared_ptr<MediaPipeline> mediaPipeline);
-    ~TelmateFrameGrabberImpl();
+class TelmateFrameGrabberImpl : public OpenCVFilterImpl, public virtual TelmateFrameGrabber, public virtual TelmateFrameGrabberOpenCVImpl
+{
 
-    /* Next methods are automatically implemented by code generator */
-    virtual bool connect(const std::string &eventType,
-                        std::shared_ptr<EventHandler> handler);
-    virtual void invoke(std::shared_ptr<MediaObjectImpl> obj,
+public:
+
+  TelmateFrameGrabberImpl (const boost::property_tree::ptree &config, std::shared_ptr<MediaPipeline> mediaPipeline);
+
+  virtual ~TelmateFrameGrabberImpl () {};
+
+  int getSnapInterval ();
+  void setSnapInterval (int snapInterval);
+  std::string getStoragePath ();
+  void setStoragePath (const std::string &path);
+  void setWebRtcEpName (const std::string &epName);
+  void setOutputFormat (int outputFormat);
+  int cleanup();
+
+  /* Next methods are automatically implemented by code generator */
+  virtual bool connect (const std::string &eventType, std::shared_ptr<EventHandler> handler);
+  virtual void invoke (std::shared_ptr<MediaObjectImpl> obj,
                        const std::string &methodName, const Json::Value &params,
                        Json::Value &response);
 
-    virtual void Serialize(JsonSerializer &serializer);
+  virtual void Serialize (JsonSerializer &serializer);
 
+private:
 
-    void release();
-    void cleanup();
+  GstElement *telmateframegrabberopencvimpl{};
+  TelmateFrameGrabberOpenCVImpl *pTelmateFrameGrabberOpenCVImpl;
 
-    int getSnapInterval();
-    void setSnapInterval(int snapInterval);
-    void setOutputFormat(int outputFormat);
-    std::string getStoragePath();
-    void setStoragePath(const std::string &path);
-    void setWebRtcEpName(const std::string &epName);
+  class StaticConstructor
+  {
+  public:
+    StaticConstructor();
+  };
 
- private:
-    GstElement *opencvfilter{};
-
-    class StaticConstructor   {
-     public:
-        StaticConstructor();
-    };
-
-    static StaticConstructor staticConstructor;
+  static StaticConstructor staticConstructor;
 
 };
 
-}   // namespace telmate
-}   // namespace module
-}   // namespace kurento
+} /* telmateframegrabber */
+} /* module */
+} /* kurento */
 
 #endif /*  __TELMATE_FRAME_GRABBER_IMPL_HPP__ */
