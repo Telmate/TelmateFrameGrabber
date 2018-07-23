@@ -16,7 +16,7 @@ GST_DEBUG_CATEGORY_STATIC(GST_CAT_DEFAULT);
 
 namespace kurento {
 namespace module {
-namespace telmateframegrabber {
+namespace telmate {
 
 TelmateFrameGrabberImpl::TelmateFrameGrabberImpl(
         const boost::property_tree::ptree &config,
@@ -27,6 +27,22 @@ TelmateFrameGrabberImpl::TelmateFrameGrabberImpl(
     GST_DEBUG("TelmateFrameGrabberImpl::"
                       "TelmateFrameGrabberImpl() "
                       "called, %s ", this->epName.c_str());
+
+
+    g_object_set (element, "filter-factory", "opencvfilter", NULL);
+
+    g_object_get (G_OBJECT (element), "filter", &opencvfilter, NULL);
+
+    if (opencvfilter == nullptr) {
+        throw KurentoException (MEDIA_OBJECT_NOT_AVAILABLE,
+                                "Media Object not available");
+    }
+
+    g_object_set (opencvfilter, "target-object",
+                  static_cast<kurento::TelmateFrameGrabberOpenCVImpl *> (this), NULL);
+
+    g_object_unref (opencvfilter);
+
 
 }
 
@@ -46,6 +62,13 @@ void TelmateFrameGrabberImpl::release() {
     return;
 }
 
+
+void TelmateFrameGrabberImpl::cleanup() {
+
+    TelmateFrameGrabberOpenCVImpl *p = (TelmateFrameGrabberOpenCVImpl*) opencvfilter;
+    p->cleanup();
+    return;
+}
 
 int TelmateFrameGrabberImpl::getSnapInterval() {
     return TelmateFrameGrabberOpenCVImpl::snapInterval;
@@ -91,6 +114,6 @@ TelmateFrameGrabberImpl::StaticConstructor::StaticConstructor() {
                            GST_DEFAULT_NAME);
 }
 
-}   // namespace telmateframegrabber
+}   // namespace telmat
 }   // namespace module
 }   // namespace kurento

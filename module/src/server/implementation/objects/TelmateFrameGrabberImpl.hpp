@@ -12,7 +12,7 @@
 
 namespace kurento {
 namespace module {
-namespace telmateframegrabber {
+namespace telmate {
 class TelmateFrameGrabberImpl;
 }   // namespace telmateframegrabber
 }   // namespace module
@@ -20,7 +20,7 @@ class TelmateFrameGrabberImpl;
 
 namespace kurento {
 void Serialize(std::shared_ptr
-                <kurento::module::telmateframegrabber::
+                <kurento::module::telmate::
                 TelmateFrameGrabberImpl> &object, JsonSerializer &serializer);
 } /* kurento */
 
@@ -30,7 +30,7 @@ class MediaPipelineImpl;
 
 namespace kurento {
 namespace module {
-namespace telmateframegrabber {
+namespace telmate {
 
 class TelmateFrameGrabberImpl :
         public OpenCVFilterImpl,
@@ -53,6 +53,7 @@ class TelmateFrameGrabberImpl :
 
 
     void release();
+    void cleanup();
 
     int getSnapInterval();
     void setSnapInterval(int snapInterval);
@@ -62,6 +63,8 @@ class TelmateFrameGrabberImpl :
     void setWebRtcEpName(const std::string &epName);
 
  private:
+    GstElement *opencvfilter{};
+
     class StaticConstructor   {
      public:
         StaticConstructor();
@@ -71,7 +74,7 @@ class TelmateFrameGrabberImpl :
 
 };
 
-}   // namespace telmateframegrabber
+}   // namespace telmate
 }   // namespace module
 }   // namespace kurento
 
