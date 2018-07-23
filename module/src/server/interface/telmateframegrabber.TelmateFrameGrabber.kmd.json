@@ -17,6 +17,15 @@
       },
       "methods": [
         {
+          "name": "cleanup",
+          "doc": "clear plugin data",
+          "params": [ ],
+          "return": {
+            "doc": "1 for true 0 for false",
+            "type": "int"
+          }
+        },
+        {
           "name": "getSnapInterval",
           "doc": "get Snapshot interval",
           "params": [ ],
