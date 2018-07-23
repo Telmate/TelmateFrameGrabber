@@ -61,7 +61,7 @@ public class CallHandler extends TextWebSocketHandler {
   public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
     JsonObject jsonMessage = gson.fromJson(message.getPayload(), JsonObject.class);
     UserSession user = registry.getBySession(session);
-
+  
     if (user != null) {
       log.debug("Incoming message from user '{}': {}", user.getName(), jsonMessage);
     } else {

@@ -28,7 +28,7 @@ import org.kurento.module.telmateframegrabber.TelmateFrameGrabber;
 /**
  * Media Pipeline (WebRTC endpoints, i.e. Kurento Media Elements) and connections for the 1 to 1
  * video communication.
- *
+ * 
  * @author Boni Garcia (bgarcia@gsyc.es)
  * @author Micael Gallego (micael.gallego@gmail.com)
  * @since 4.3.1
@@ -39,7 +39,7 @@ public class CallMediaPipeline {
   private WebRtcEndpoint callerWebRtcEp;
   private WebRtcEndpoint calleeWebRtcEp;
 
-  private static final Logger TheLogger = LoggerFactory.getLogger(CallMediaPipeline.class);
+  private static final Logger TheLogger = LoggerFactory.getLogger(CallMediaPipeline.class);  
 
   private TelmateFrameGrabber TelmateFrameGrabber1 = null;
   private TelmateFrameGrabber TelmateFrameGrabber2 = null;
@@ -71,14 +71,14 @@ public class CallMediaPipeline {
       TelmateFrameGrabber2.setSnapInterval(snapinterval);
       TelmateFrameGrabber2.setWebRtcEpName("TelmateFrameGrabber2");
       TelmateFrameGrabber2.setStoragePath(stoagePath + "/TelmateFrameGrabber2");
-
+      
     } catch (Throwable t) {
       if (this.pipeline != null) {
         pipeline.release();
       }
     }
   }
-
+  
 
   public String generateSdpAnswerForCaller(String sdpOffer) {
     return callerWebRtcEp.processOffer(sdpOffer);
