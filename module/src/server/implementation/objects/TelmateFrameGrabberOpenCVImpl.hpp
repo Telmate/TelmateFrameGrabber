@@ -55,6 +55,7 @@ class TelmateFrameGrabberOpenCVImpl : public virtual OpenCVProcess {
     virtual void process(cv::Mat &mat);
 
     void release();
+    void cleanup();
 
     boost::atomic<int> framesCounter;
     int snapInterval;
@@ -73,6 +74,9 @@ class TelmateFrameGrabberOpenCVImpl : public virtual OpenCVProcess {
         }
     }
 
+    TelmateFrameGrabberOpenCVImpl* getFrameGrabberPtr() {
+        return this;
+    }
 
  private:
     class StaticConstructor {

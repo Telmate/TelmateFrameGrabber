@@ -35,9 +35,32 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() {
 
 TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() {
 
-    this->thrLoop = false;
+
     GST_INFO("Destructor was called for %s", this->epName.c_str());
 
+
+}
+
+void TelmateFrameGrabberOpenCVImpl::cleanup() {
+
+    VideoFrame *ptrVf;
+
+    while(!this->frameQueue->empty()) {
+        this->frameQueue->pop(ptrVf); // blocks
+        --this->queueLength;
+        delete ptrVf;
+        ptrVf = NULL;
+
+    }
+
+    this->thrLoop = false;
+    boost::this_thread::sleep_for(boost::chrono::milliseconds(250)); /* Give the processing thread some time to exit() */
+    GST_INFO("Called release() for %s :: Dequeue completed.", this->epName.c_str());
+
+    delete this->frameQueue;
+    this->frameQueue = NULL;
+
+    return;
 }
 
 
@@ -132,20 +155,7 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
 
         }
 
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(250));
 
-        while(!this->frameQueue->empty()) {
-
-            this->frameQueue->pop(ptrVf); // blocks
-            --this->queueLength;
-            delete ptrVf;
-            ptrVf = NULL;
-
-        }
-
-
-        delete this->frameQueue;
-        this->frameQueue = NULL;
 
 }
 
