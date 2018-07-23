@@ -64,7 +64,7 @@ public:
 
 private:
 
-  GstElement *telmateframegrabberopencvimpl{};
+  /*GstElement *telmateframegrabberopencvimpl{};*/
   TelmateFrameGrabberOpenCVImpl *pTelmateFrameGrabberOpenCVImpl;
 
   class StaticConstructor

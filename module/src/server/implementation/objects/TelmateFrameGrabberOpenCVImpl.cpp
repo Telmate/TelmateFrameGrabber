@@ -15,6 +15,10 @@ namespace kurento {
 
 TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() {
 
+    GST_DEBUG_CATEGORY_INIT(GST_CAT_DEFAULT, GST_DEFAULT_NAME, 0,
+                            GST_DEFAULT_NAME);
+
+
     this->thrLoop = true;
     this->snapInterval = 1000;
     this->epName = "EP_NAME_UNINITIALIZED";
@@ -177,14 +181,5 @@ long TelmateFrameGrabberOpenCVImpl::getCurrentTimestampLong() {
     gettimeofday(&tp, NULL);
     return (tp.tv_sec * 1000 + tp.tv_usec / 1000);
 }
-
-TelmateFrameGrabberOpenCVImpl::StaticConstructor
-       TelmateFrameGrabberOpenCVImpl::staticConstructor;
-
-TelmateFrameGrabberOpenCVImpl::StaticConstructor::StaticConstructor() {
-    GST_DEBUG_CATEGORY_INIT(GST_CAT_DEFAULT, GST_DEFAULT_NAME, 0,
-                                GST_DEFAULT_NAME);
-}
-
 
 }   // namespace kurento

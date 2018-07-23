@@ -66,25 +66,12 @@ class TelmateFrameGrabberOpenCVImpl : public virtual OpenCVProcess {
 
 
  protected:
-    std::shared_ptr<MediaObject> getSharedPtr() {
-        try {
-            return dynamic_cast <MediaObject *> (this)->shared_from_this();
-        } catch (...) {
-            return std::shared_ptr<MediaObject> ();
-        }
-    }
 
     TelmateFrameGrabberOpenCVImpl* getFrameGrabberPtr() {
         return this;
     }
 
  private:
-    class StaticConstructor {
-     public:
-        StaticConstructor();
-    };
-
-    static StaticConstructor staticConstructor;
 
     boost::asio::io_service ioService;
     boost::thread_group tp;
@@ -102,9 +89,6 @@ class TelmateFrameGrabberOpenCVImpl : public virtual OpenCVProcess {
     int64 getCurrentTimestampLong();
 
     boost::mutex workerThreadMutex;
-
-
-
 
 };
 
