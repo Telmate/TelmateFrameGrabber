@@ -23,6 +23,7 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() {
     this->snapInterval = 1000;
     this->epName = "EP_NAME_UNINITIALIZED";
     this->storagePath = "/tmp/";
+    this->prevStoragePath = this->storagePath;
     this->framesCounter = 0;
     this->outputFormat = FGFMT_JPEG;
     this->lastQueueTimeStamp = 0;
@@ -130,7 +131,7 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
             std::string filename =
                     std::to_string((long) this->framesCounter) + "_" + ptrVf->ts + image_extension;
 
-            if (this->storagePathSubdir.empty() || this->storagePath != this->prevStoragePath) {
+            if (this->storagePathSubdir.empty() || !this->storagePath.compare(this->prevStoragePath)) {
                 this->prevStoragePath = this->storagePath;
                 this->storagePathSubdir = this->storagePath + "/frames_" + this->getCurrentTimestampString();
                 boost::filesystem::path dir(this->storagePathSubdir.c_str());
