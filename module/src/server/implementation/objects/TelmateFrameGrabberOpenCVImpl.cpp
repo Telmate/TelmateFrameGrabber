@@ -22,7 +22,7 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() {
     this->thrLoop = true;
     this->snapInterval = 1000;
     this->epName = "EP_NAME_UNINITIALIZED";
-    this->storagePath = "/tmp";
+    this->storagePath = "/tmp/";
     this->framesCounter = 0;
     this->outputFormat = FGFMT_JPEG;
     this->lastQueueTimeStamp = 0;
@@ -130,14 +130,14 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
             std::string filename =
                     std::to_string((long) this->framesCounter) + "_" + ptrVf->ts + image_extension;
 
-            if (this->storagePathSubdir.empty()) {
-                this->storagePathSubdir = this->storagePath + "/frames_" + this->getCurrentTimestampString();
-                boost::filesystem::path dir(this->storagePathSubdir.c_str());
-                if (!boost::filesystem::create_directories(dir)) {
-                    GST_ERROR("%s create_directories() failed for: %s", this->epName.c_str(),
-                              this->storagePathSubdir.c_str());
-                }
+            //if (this->storagePathSubdir.empty()) {
+            this->storagePathSubdir = this->storagePath + "/frames_" + this->getCurrentTimestampString();
+            boost::filesystem::path dir(this->storagePathSubdir.c_str());
+            if (!boost::filesystem::create_directories(dir)) {
+               GST_INFO("%s create_directories() failed for: %s", this->epName.c_str(),
+                          this->storagePathSubdir.c_str());
             }
+            //}
 
             std::string fullpath = this->storagePathSubdir + "/" + filename;
 
@@ -172,7 +172,7 @@ void TelmateFrameGrabberOpenCVImpl::setStoragePath(std::string storagePath) {
     this->storagePathSubdir = this->storagePath + "/frames_" + this->getCurrentTimestampString();
     boost::filesystem::path dir(this->storagePathSubdir.c_str());
     if (!boost::filesystem::create_directories(dir)) {
-        GST_ERROR("%s create_directories() failed for: %s", this->epName.c_str(),
+        GST_INFO("%s create_directories() failed for: %s", this->epName.c_str(),
                   this->storagePathSubdir.c_str());
     }
 
