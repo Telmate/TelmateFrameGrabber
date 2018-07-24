@@ -5,6 +5,7 @@
 
 #define NDEBUG 1
 
+
 #include <ctime>
 #include <iostream>
 #include <OpenCVProcess.hpp>
@@ -30,6 +31,13 @@
 
 #include <boost/filesystem.hpp>
 
+
+#include <gst/gst.h>
+#include <KurentoException.hpp>
+#include <vector>
+#include <string>
+
+
 #define FGFMT_JPEG  0x0
 #define FGFMT_PNG   0x1
 
@@ -39,59 +47,59 @@
 #define MAX_IDLE_QUEUE_TIME_NS 30000
 #define QUEUE_BASE_ELEMENT_ALLOC 1000
 
-//using namespace moodycamel;
 
 
 
+namespace kurento
+{
+namespace module
+{
+namespace telmateframegrabber
+{
 
-namespace kurento {
+class TelmateFrameGrabberOpenCVImpl : public virtual OpenCVProcess
+{
 
-class TelmateFrameGrabberOpenCVImpl : public virtual OpenCVProcess {
- public:
-    TelmateFrameGrabberOpenCVImpl();
+public:
 
-    virtual ~TelmateFrameGrabberOpenCVImpl();
+  TelmateFrameGrabberOpenCVImpl ();
 
-    virtual void process(cv::Mat &mat);
+  virtual ~TelmateFrameGrabberOpenCVImpl ();
 
-    void release();
-    void cleanup();
+  virtual void process (cv::Mat &mat);
 
-    boost::atomic<int> framesCounter;
-    int snapInterval;
-    std::string storagePath;
-    std::string prevStoragePath;
-    std::string epName;
-    int outputFormat;     // 0x0=JPEG 0x1=PNG
+  int cleanup ();
+  int getSnapInterval ();
+  void setSnapInterval (int snapInterval);
+  std::string getStoragePath ();
+  void setStoragePath (const std::string &path);
+  void setWebRtcEpName (const std::string &epName);
+  void setOutputFormat (int outputFormat);
 
+private:
+  boost::atomic<int> framesCounter;
+  int snapInterval;
+  std::string storagePath;
+  std::string epName;
+  int outputFormat;
 
- protected:
+  avis_blocking_queue<VideoFrame*> *frameQueue;
+  boost::thread* thr;
+  boost::atomic<bool> thrLoop;
 
-    TelmateFrameGrabberOpenCVImpl* getFrameGrabberPtr() {
-        return this;
-    }
+  boost::atomic<int64> lastQueueTimeStamp;
+  boost::atomic<int> queueLength;
+  std::string storagePathSubdir;
 
- private:
+  void queueHandler();
+  std::string getCurrentTimestampString();
+  int64 getCurrentTimestampLong();
 
-    boost::asio::io_service ioService;
-    boost::thread_group tp;
-
-    avis_blocking_queue<VideoFrame*> *frameQueue;
-    boost::thread* thr;
-    boost::atomic<bool> thrLoop;
-
-    boost::atomic<int64> lastQueueTimeStamp;
-    boost::atomic<int> queueLength;
-    std::string storagePathSubdir;
-
-    void queueHandler();
-    std::string getCurrentTimestampString();
-    int64 getCurrentTimestampLong();
-
-    boost::mutex workerThreadMutex;
 
 };
 
-}   // namespace kurento
+} /* telmateframegrabber */
+} /* module */
+} /* kurento */
 
 #endif /*  __TELMATE_FRAME_GRABBER_OPENCV_IMPL_HPP__ */

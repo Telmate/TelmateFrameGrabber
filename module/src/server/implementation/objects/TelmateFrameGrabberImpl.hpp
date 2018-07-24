@@ -46,13 +46,13 @@ public:
 
   virtual ~TelmateFrameGrabberImpl () {};
 
+  int cleanup ();
   int getSnapInterval ();
   void setSnapInterval (int snapInterval);
   std::string getStoragePath ();
   void setStoragePath (const std::string &path);
   void setWebRtcEpName (const std::string &epName);
   void setOutputFormat (int outputFormat);
-  int cleanup();
 
   /* Next methods are automatically implemented by code generator */
   virtual bool connect (const std::string &eventType, std::shared_ptr<EventHandler> handler);
@@ -63,9 +63,6 @@ public:
   virtual void Serialize (JsonSerializer &serializer);
 
 private:
-
-  /*GstElement *telmateframegrabberopencvimpl{};*/
-  TelmateFrameGrabberOpenCVImpl *pTelmateFrameGrabberOpenCVImpl;
 
   class StaticConstructor
   {

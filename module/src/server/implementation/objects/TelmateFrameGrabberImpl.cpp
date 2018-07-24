@@ -19,57 +19,44 @@ namespace module
 namespace telmateframegrabber
 {
 
-TelmateFrameGrabberImpl::TelmateFrameGrabberImpl (const boost::property_tree::ptree &config,
-                                                  std::shared_ptr<MediaPipeline> mediaPipeline) :
-        OpenCVFilterImpl (config, std::dynamic_pointer_cast<MediaPipelineImpl> (mediaPipeline) )
+TelmateFrameGrabberImpl::TelmateFrameGrabberImpl (const boost::property_tree::ptree &config, std::shared_ptr<MediaPipeline> mediaPipeline) : OpenCVFilterImpl (config, std::dynamic_pointer_cast<MediaPipelineImpl> (mediaPipeline) )
 
 {
-
-    GST_DEBUG("TelmateFrameGrabberImpl::TelmateFrameGrabberImpl() called");
-
-    pTelmateFrameGrabberOpenCVImpl = new TelmateFrameGrabberOpenCVImpl();
-
 }
 
-int TelmateFrameGrabberImpl::cleanup()
+int TelmateFrameGrabberImpl::cleanup ()
 {
-    pTelmateFrameGrabberOpenCVImpl->cleanup();
-    delete pTelmateFrameGrabberOpenCVImpl;
-    pTelmateFrameGrabberOpenCVImpl = NULL;
-    return 1;
+  return TelmateFrameGrabberOpenCVImpl::cleanup ();
 }
 
 int TelmateFrameGrabberImpl::getSnapInterval ()
 {
-    return pTelmateFrameGrabberOpenCVImpl->snapInterval;
+  return TelmateFrameGrabberOpenCVImpl::getSnapInterval ();
 }
 
 void TelmateFrameGrabberImpl::setSnapInterval (int snapInterval)
 {
-    pTelmateFrameGrabberOpenCVImpl->snapInterval = snapInterval;
-    return;
+  return TelmateFrameGrabberOpenCVImpl::setSnapInterval(snapInterval);
 }
 
 std::string TelmateFrameGrabberImpl::getStoragePath ()
 {
-    return pTelmateFrameGrabberOpenCVImpl->storagePath;
+  return TelmateFrameGrabberOpenCVImpl::getStoragePath ();
 }
 
 void TelmateFrameGrabberImpl::setStoragePath (const std::string &path)
 {
-    pTelmateFrameGrabberOpenCVImpl->storagePath = path;
+  return TelmateFrameGrabberOpenCVImpl::setStoragePath (path);
 }
 
 void TelmateFrameGrabberImpl::setWebRtcEpName (const std::string &epName)
 {
-    pTelmateFrameGrabberOpenCVImpl->epName = epName;
-    return;
+  return TelmateFrameGrabberOpenCVImpl::setWebRtcEpName (epName);
 }
 
 void TelmateFrameGrabberImpl::setOutputFormat (int outputFormat)
 {
-    pTelmateFrameGrabberOpenCVImpl->outputFormat = outputFormat;
-    return;
+  return TelmateFrameGrabberOpenCVImpl::setOutputFormat (outputFormat);
 }
 
 MediaObjectImpl *
