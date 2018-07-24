@@ -132,16 +132,20 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
                     std::to_string((long) this->framesCounter) + "_" + ptrVf->ts + image_extension;
 
 
-
-            if (this->storagePathSubdir.empty() || !this->storagePath.compare(this->prevStoragePath)) {
-
+            if(this->storagePath.compare(this->prevStoragePath)) {
+                this->storagePathSubdir.clear();
                 GST_INFO("Storage path has changed. old storage path: %s. new storage path: %s",this->prevStoragePath.c_str(), this->storagePathSubdir.c_str());
+
+            }
+
+            if (this->storagePathSubdir.empty()) {
+
                 this->prevStoragePath = this->storagePath;
                 this->storagePathSubdir = this->storagePath + "/frames_" + this->getCurrentTimestampString();
                 boost::filesystem::path dir(this->storagePathSubdir.c_str());
                 GST_INFO("going to create a directory in %s", this->storagePathSubdir.c_str());
                 if (!boost::filesystem::create_directories(dir)) {
-                GST_INFO("%s create_directories() failed for: %s", this->epName.c_str(),
+                GST_ERROR("%s create_directories() failed for: %s", this->epName.c_str(),
                           this->storagePathSubdir.c_str());
                 }
 
