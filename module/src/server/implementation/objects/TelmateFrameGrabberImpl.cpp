@@ -57,7 +57,7 @@ std::string TelmateFrameGrabberImpl::getStoragePath ()
 
 void TelmateFrameGrabberImpl::setStoragePath (const std::string &path)
 {
-    pTelmateFrameGrabberOpenCVImpl->storagePath = path;
+    pTelmateFrameGrabberOpenCVImpl->setStoragePath(path);
 }
 
 void TelmateFrameGrabberImpl::setWebRtcEpName (const std::string &epName)
