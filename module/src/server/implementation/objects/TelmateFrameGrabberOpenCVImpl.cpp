@@ -103,10 +103,6 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
 
         while (this->thrLoop) {
 
-            if(this->storagePath.empty()) {
-                boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
-                continue;
-            }
             this->frameQueue->pop(ptrVf); // blocks
             params.clear();     // clear the vector since the last iteration.
             this->lastQueueTimeStamp = this->getCurrentTimestampLong();
@@ -167,6 +163,23 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
 
 }
 
+
+/* This function provides the ability to update the storage path for
+ * snapshot storage per endpoint
+ */
+void TelmateFrameGrabberOpenCVImpl::setStoragePath(std::string storagePath) {
+
+    this->storagePath = storagePath;
+
+    this->storagePathSubdir = this->storagePath + "/frames_" + this->getCurrentTimestampString();
+    boost::filesystem::path dir(this->storagePathSubdir.c_str());
+    if (!boost::filesystem::create_directories(dir)) {
+        GST_ERROR("%s create_directories() failed for: %s", this->epName.c_str(),
+                  this->storagePathSubdir.c_str());
+    }
+
+    GST_INFO("Storage path has been updated to %s for %s", this->storagePath.c_str(), this->epName.c_str());
+}
 
 std::string TelmateFrameGrabberOpenCVImpl::getCurrentTimestampString() {
     struct timeval tp;
