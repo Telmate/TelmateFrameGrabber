@@ -22,7 +22,7 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() {
     this->thrLoop = true;
     this->snapInterval = 1000;
     this->epName = "EP_NAME_UNINITIALIZED";
-    this->storagePath.clear(); //= NULL; /*"/tmp";*/
+    this->storagePath = "/tmp";
     this->framesCounter = 0;
     this->outputFormat = FGFMT_JPEG;
     this->lastQueueTimeStamp = 0;
@@ -39,9 +39,7 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl() {
 
 TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() {
 
-
     GST_INFO("Destructor was called for %s", this->epName.c_str());
-
 
 }
 
