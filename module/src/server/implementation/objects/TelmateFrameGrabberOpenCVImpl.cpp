@@ -130,14 +130,16 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
             std::string filename =
                     std::to_string((long) this->framesCounter) + "_" + ptrVf->ts + image_extension;
 
-            //if (this->storagePathSubdir.empty()) {
-            this->storagePathSubdir = this->storagePath + "/frames_" + this->getCurrentTimestampString();
-            boost::filesystem::path dir(this->storagePathSubdir.c_str());
-            if (!boost::filesystem::create_directories(dir)) {
-               GST_INFO("%s create_directories() failed for: %s", this->epName.c_str(),
+            if (this->storagePathSubdir.empty() || this->storagePath != this->prevStoragePath) {
+                this->prevStoragePath = this->storagePath;
+                this->storagePathSubdir = this->storagePath + "/frames_" + this->getCurrentTimestampString();
+                boost::filesystem::path dir(this->storagePathSubdir.c_str());
+                if (!boost::filesystem::create_directories(dir)) {
+                GST_INFO("%s create_directories() failed for: %s", this->epName.c_str(),
                           this->storagePathSubdir.c_str());
+                }
+
             }
-            //}
 
             std::string fullpath = this->storagePathSubdir + "/" + filename;
 
@@ -159,24 +161,6 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
 
 
 
-}
-
-
-/* This function provides the ability to update the storage path for
- * snapshot storage per endpoint
- */
-void TelmateFrameGrabberOpenCVImpl::setStoragePath(std::string storagePath) {
-
-    this->storagePath = storagePath;
-
-    this->storagePathSubdir = this->storagePath + "/frames_" + this->getCurrentTimestampString();
-    boost::filesystem::path dir(this->storagePathSubdir.c_str());
-    if (!boost::filesystem::create_directories(dir)) {
-        GST_INFO("%s create_directories() failed for: %s", this->epName.c_str(),
-                  this->storagePathSubdir.c_str());
-    }
-
-    GST_INFO("Storage path has been updated to %s for %s", this->storagePath.c_str(), this->epName.c_str());
 }
 
 std::string TelmateFrameGrabberOpenCVImpl::getCurrentTimestampString() {

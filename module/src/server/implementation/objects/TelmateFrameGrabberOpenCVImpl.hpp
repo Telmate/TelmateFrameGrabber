@@ -60,9 +60,9 @@ class TelmateFrameGrabberOpenCVImpl : public virtual OpenCVProcess {
     boost::atomic<int> framesCounter;
     int snapInterval;
     std::string storagePath;
+    std::string prevStoragePath;
     std::string epName;
     int outputFormat;     // 0x0=JPEG 0x1=PNG
-    void setStoragePath(std::string storagePath);
 
 
  protected:
