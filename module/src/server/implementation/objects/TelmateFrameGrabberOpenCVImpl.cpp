@@ -132,7 +132,7 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
                     std::to_string((long) this->framesCounter) + "_" + ptrVf->ts + image_extension;
 
 
-            if(this->storagePath.compare(this->prevStoragePath)) {
+            if(this->storagePath != this->prevStoragePath) {
                 this->storagePathSubdir.clear();
                 GST_INFO("Storage path has changed. old storage path: %s. new storage path: %s",this->prevStoragePath.c_str(), this->storagePathSubdir.c_str());
 
