@@ -1,6 +1,6 @@
 {
   "name": "telmateframegrabber",
-  "version": "0.9.0",
+  "version": "2.0.1",
   "kurentoVersion": "^6.7.1",
   "imports": [
     {
@@ -123,7 +123,56 @@
           ],
           "name": "setOutputFormat",
           "doc": "set the image storage format, 0x0=JPEG 0x1=PNG"
+        },
+
+        {
+          "params": [],
+          "return": {
+            "type": "int",
+            "doc": "path of snapshots location"
+          },
+          "name": "getMonitorTimeoutSec",
+          "doc": "get monitoring Thread timeout in seconds"
+        },
+        {
+          "params": [
+            {
+              "name": "timeout",
+              "doc": "session timeout in sec",
+              "type": "int"
+            }
+          ],
+          "name": "setMonitorTimeoutSec",
+          "doc": "set monitoring Thread timeout in seconds"
+        },
+
+        {
+          "params": [],
+          "return": {
+            "type": "String",
+            "doc": "UUID set for session"
+          },
+          "name": "getSessionUUID",
+          "doc": "get the session id for this session"
+        },
+        {
+          "params": [
+            {
+              "name": "puuid",
+              "doc": "path of snapshots location",
+              "type": "String"
+            }
+          ],
+          "name": "setSessionUUID",
+          "doc": "set the session UUID"
         }
+
+
+
+
+
+
+
       ]
     }
   ],
