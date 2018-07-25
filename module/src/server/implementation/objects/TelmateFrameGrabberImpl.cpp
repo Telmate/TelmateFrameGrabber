@@ -63,6 +63,28 @@ void TelmateFrameGrabberImpl::setOutputFormat (int outputFormat)
   return TelmateFrameGrabberOpenCVImpl::setOutputFormat (outputFormat);
 }
 
+int TelmateFrameGrabberImpl::getMonitorTimeoutSec ()
+{
+  return TelmateFrameGrabberOpenCVImpl::getMonitorTimeoutSec();
+}
+
+void TelmateFrameGrabberImpl::setMonitorTimeoutSec (const int timeout)
+{
+  return TelmateFrameGrabberOpenCVImpl::setMonitorTimeoutSec (timeout);
+}
+
+std::string TelmateFrameGrabberImpl::getSessionUUID ()
+{
+  return TelmateFrameGrabberOpenCVImpl::getSessionUUID ();
+}
+
+void TelmateFrameGrabberImpl::setSessionUUID (const std::string &puuid)
+{
+  return TelmateFrameGrabberOpenCVImpl::setSessionUUID (puuid);
+}
+
+
+
 MediaObjectImpl *
 TelmateFrameGrabberImplFactory::createObject (const boost::property_tree::ptree &config, std::shared_ptr<MediaPipeline> mediaPipeline) const
 {

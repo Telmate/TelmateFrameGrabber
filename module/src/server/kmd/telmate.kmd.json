@@ -1,6 +1,6 @@
 {
   "name": "telmate",
-  "version": "0.9.0",
+  "version": "2.0.1",
   "kurentoVersion": "^6.7.1",
   "imports": [
     {

@@ -25,7 +25,9 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl ()
   GST_DEBUG_CATEGORY_INIT(GST_CAT_DEFAULT, GST_DEFAULT_NAME, 0,
                           GST_DEFAULT_NAME);
 
+  this->uuid = "UUID_UNINITIALIZED";
   this->thrLoop = true;
+  this->monThreadLoop = true;
   this->snapInterval = 1000;
   this->epName = "EP_NAME_UNINITIALIZED";
   this->storagePath = "/tmp/";
@@ -34,14 +36,18 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl ()
   this->lastQueueTimeStamp = 0;
   this->queueLength = 0;
   this->frameQueue = new avis_blocking_queue<VideoFrame*>;
+  this->monitorTimeoutMs = 60000; // 60 sec.
+
 
   this->thr = new boost::thread(boost::bind(
           &TelmateFrameGrabberOpenCVImpl::queueHandler, this));
   this->thr->detach();
 
+  this->wdThr = new boost::thread(boost::bind(
+          &TelmateFrameGrabberOpenCVImpl::watchDogThread, this));
+  this->wdThr->detach();
+
   GST_INFO("Constructor was called for %s", this->epName.c_str());
-
-
 
 }
 
@@ -64,8 +70,9 @@ TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() {
   delete this->frameQueue;
   this->frameQueue = NULL;
 
-  GST_INFO("Destructor was called for %s", this->epName.c_str());
+  this->monThreadLoop = false;
 
+  GST_INFO("Destructor was called for %s", this->epName.c_str());
 
 }
 
@@ -75,10 +82,10 @@ int TelmateFrameGrabberOpenCVImpl::cleanup() {
 }
 
 /*
-* This function will be called with each new frame. mat variable
-* contains the current frame. You should insert your image processing code
-* here. Any changes in mat, will be sent through the Media Pipeline.
-*/
+ * This function will be called for each new frame. The &mat variable
+ * contains the current frame. Any image processing code should
+ * be performed here and will be sent back to Media Pipline.
+ */
 void TelmateFrameGrabberOpenCVImpl::process(cv::Mat &mat) {
   if ((this->getCurrentTimestampLong() - this->lastQueueTimeStamp) >= this->snapInterval) {
 
@@ -96,10 +103,8 @@ void TelmateFrameGrabberOpenCVImpl::process(cv::Mat &mat) {
 }
 /*
  * This function is executed inside the queueHandler thread as a main() function.
- * It pops a VideoFrame from the framequeue and saves it to disk.
- * a boost scoped_lock is implemented to ensure the queue is emptied to disk before
- * the destructor is executed. a 1 second sleep is implemented inside the while() loop
- * to ensure the cpu isn't exhausted while the queue is empty.
+ * It pops a VideoFrame from the frame queue and saves it to disk.
+ *
  */
 void TelmateFrameGrabberOpenCVImpl::queueHandler() {
 
@@ -161,29 +166,63 @@ void TelmateFrameGrabberOpenCVImpl::queueHandler() {
         }
         catch (...) {
           GST_ERROR("::queueHandler() imgwrite() failed.");
-          throw KurentoException(NOT_IMPLEMENTED,
-                                 "TelmateFrameGrabberOpenCVImpl::queueHandler() imgwrite() failed. \n");
+          /*throw KurentoException(NOT_IMPLEMENTED,
+                                 "TelmateFrameGrabberOpenCVImpl::queueHandler() imgwrite() failed. \n");*/
         }
 
         ptrVf->mat.release();   // release internal memory allocations
 
         delete ptrVf;
         ptrVf = NULL;
-        //GST_INFO("STILL PROCCESSING.");
+        GST_DEBUG("queueHandler() ep: %s looping...",this->epName.c_str() );
 
     }
 
-  } catch(boost::thread_interrupted interrupt) {
+  } catch(...) {
 
+        ptrVf->mat.release();
         delete ptrVf;
         ptrVf = NULL;
-        ptrVf->mat.release();
+        //GST_INFO("!!! queueHandler() of %s Thread exception! exiting...", this->epName.c_str());
+        return;
 
   }
 
-  GST_ERROR("queueHandler() of  %s Thread exiting...",this->epName.c_str());
+  GST_INFO("queueHandler() of %s Thread exiting...",this->epName.c_str());
+  return;
+}
+
+void TelmateFrameGrabberOpenCVImpl::watchDogThread() {
+
+  while(this->monThreadLoop) {
+
+    try {
+
+      boost::this_thread::sleep_for(boost::chrono::seconds(10));
+
+      if((this->getCurrentTimestampLong() - this->lastQueueTimeStamp) >=
+         this->monitorTimeoutMs && this->queueLength == 0 && this->framesCounter >= 1) {
+
+        GST_INFO("!!! session:%s :: ep: %s is STILL Active after timeout!",
+                 this->uuid.c_str(), this->epName.c_str());
+
+      }
+      this->lastQueueTimeStamp = this->getCurrentTimestampLong();
+
+
+    } catch(...) {
+        GST_INFO("!!! watchDogThread is exiting prematurely for %s .", this->epName.c_str());
+
+    }
+
+  }
+
+  GST_INFO("watchDogThread Finished for %s. Exiting...", this->epName.c_str());
+  return;
 
 }
+
+
 
 std::string TelmateFrameGrabberOpenCVImpl::getCurrentTimestampString() {
   struct timeval tp;
@@ -203,43 +242,62 @@ long TelmateFrameGrabberOpenCVImpl::getCurrentTimestampLong() {
   return (tp.tv_sec * 1000 + tp.tv_usec / 1000);
 }
 
-int TelmateFrameGrabberOpenCVImpl::getSnapInterval ()
-{
+int TelmateFrameGrabberOpenCVImpl::getSnapInterval() {
   return this->snapInterval;
 }
 
-void TelmateFrameGrabberOpenCVImpl::setSnapInterval (int snapInterval)
-{
+void TelmateFrameGrabberOpenCVImpl::setSnapInterval (int snapInterval) {
     this->snapInterval = snapInterval;
     GST_INFO("Snapshot interval was set to: %d", this->snapInterval);
     return;
 }
 
-std::string TelmateFrameGrabberOpenCVImpl::getStoragePath ()
-{
+std::string TelmateFrameGrabberOpenCVImpl::getStoragePath() {
   return this->storagePath;
 }
 
-void TelmateFrameGrabberOpenCVImpl::setStoragePath (const std::string &path)
-{
+void TelmateFrameGrabberOpenCVImpl::setStoragePath(const std::string &path) {
     this->storagePath = path;
     GST_INFO("Storage Path was set to: %s", this->storagePath.c_str());
     return;
 }
 
-void TelmateFrameGrabberOpenCVImpl::setWebRtcEpName (const std::string &epName)
-{
+void TelmateFrameGrabberOpenCVImpl::setWebRtcEpName(const std::string &epName) {
     this->epName = epName;
     GST_INFO("Endpoint name was set to: %s", this->epName.c_str());
     return;
 }
 
-void TelmateFrameGrabberOpenCVImpl::setOutputFormat (int outputFormat)
-{
+void TelmateFrameGrabberOpenCVImpl::setOutputFormat(int outputFormat) {
     this->outputFormat = outputFormat;
     GST_INFO("Snapshot output format was set to: %d", this->outputFormat);
     return;
 }
+
+void TelmateFrameGrabberOpenCVImpl::setMonitorTimeoutSec(int timeout) {
+  std::chrono::seconds sec(timeout);
+  std::chrono::milliseconds ms;
+  ms = std::chrono::duration_cast<std::chrono::milliseconds> (sec);
+  this->monitorTimeoutMs = ms.count();
+  GST_INFO("Monitoring Thread timeout was set to: %d ms", (int)this->monitorTimeoutMs);
+  return;
+}
+
+int TelmateFrameGrabberOpenCVImpl::getMonitorTimeoutSec() {
+  return (this->monitorTimeoutMs );
+}
+
+std::string TelmateFrameGrabberOpenCVImpl::getSessionUUID() {
+  return this->uuid;
+}
+
+void TelmateFrameGrabberOpenCVImpl::setSessionUUID(const std::string &puuid) {
+  this->uuid = puuid;
+  GST_INFO("Session UUID was set to: %s", this->uuid.c_str());
+  return;
+}
+
+
 
 } /* telmateframegrabber */
 } /* module */
