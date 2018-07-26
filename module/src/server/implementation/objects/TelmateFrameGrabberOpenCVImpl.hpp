@@ -89,6 +89,8 @@ private:
   boost::atomic<int> queueLength;
   int64 monitorTimeoutMs;
 
+  boost::atomic<bool> isThreaded;
+
   void queueHandler();
   void watchDogThread();
 
