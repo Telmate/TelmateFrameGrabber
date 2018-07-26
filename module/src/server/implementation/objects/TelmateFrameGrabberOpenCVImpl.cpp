@@ -49,10 +49,12 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl ()
     this->wdThr = new boost::thread(boost::bind(
             &TelmateFrameGrabberOpenCVImpl::watchDogThread, this));
     this->wdThr->detach();
+
+    GST_INFO("*** THREADED *** Constructor was called for %s", this->epName.c_str());
   }
-
-  GST_INFO("Constructor was called for %s", this->epName.c_str());
-
+  else {
+      GST_INFO("*** NON-THREADED *** Constructor was called for %s", this->epName.c_str());
+  }
 }
 
 TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() {
