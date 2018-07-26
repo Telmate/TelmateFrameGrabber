@@ -27,7 +27,7 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl ()
 
   this->uuid = "UUID_UNINITIALIZED";
   this->thrLoop = true;
-  this->monThreadLoop = true;
+  this->monThreadLoop = false;
   this->snapInterval = 1000;
   this->epName = "EP_NAME_UNINITIALIZED";
   this->storagePath = "/tmp/";
@@ -55,7 +55,9 @@ TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() {
 
   VideoFrame *ptrVf;
   this->thrLoop = false;
-  boost::this_thread::sleep_for(boost::chrono::milliseconds(250));
+  this->monThreadLoop = false;
+
+  boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
 
 
   while(this->queueLength > 0) {
@@ -70,7 +72,6 @@ TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() {
   delete this->frameQueue;
   this->frameQueue = NULL;
 
-  this->monThreadLoop = false;
 
   GST_INFO("Destructor was called for %s", this->epName.c_str());
 
