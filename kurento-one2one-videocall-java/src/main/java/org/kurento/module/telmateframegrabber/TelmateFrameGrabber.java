@@ -18,6 +18,31 @@ public interface TelmateFrameGrabber extends OpenCVFilter {
 
 /**
  *
+ * clear plugin data
+ * @return 1 for true 0 for false *
+ **/
+  int cleanup();
+
+/**
+ *
+ * Asynchronous version of cleanup:
+ * {@link Continuation#onSuccess} is called when the action is
+ * done. If an error occurs, {@link Continuation#onError} is called.
+ * @see TelmateFrameGrabber#cleanup
+ *
+ **/
+    void cleanup(Continuation<Integer> cont);
+
+/**
+ *
+ * clear plugin data
+ * @return 1 for true 0 for false *
+ **/
+    TFuture<Integer> cleanup(Transaction tx);
+
+
+/**
+ *
  * get Snapshot interval
  * @return Value of current snapshot interval *
  **/
@@ -202,6 +227,124 @@ public interface TelmateFrameGrabber extends OpenCVFilter {
     void setOutputFormat(Transaction tx, @org.kurento.client.internal.server.Param("outputFormat") int outputFormat);
 
 
+/**
+ *
+ * get monitoring Thread timeout in seconds
+ * @return path of snapshots location *
+ **/
+  int getMonitorTimeoutSec();
+
+/**
+ *
+ * Asynchronous version of getMonitorTimeoutSec:
+ * {@link Continuation#onSuccess} is called when the action is
+ * done. If an error occurs, {@link Continuation#onError} is called.
+ * @see TelmateFrameGrabber#getMonitorTimeoutSec
+ *
+ **/
+    void getMonitorTimeoutSec(Continuation<Integer> cont);
+
+/**
+ *
+ * get monitoring Thread timeout in seconds
+ * @return path of snapshots location *
+ **/
+    TFuture<Integer> getMonitorTimeoutSec(Transaction tx);
+
+
+/**
+ *
+ * set monitoring Thread timeout in seconds
+ *
+ * @param timeout
+ *       session timeout in sec
+ *
+ **/
+  void setMonitorTimeoutSec(@org.kurento.client.internal.server.Param("timeout") int timeout);
+
+/**
+ *
+ * Asynchronous version of setMonitorTimeoutSec:
+ * {@link Continuation#onSuccess} is called when the action is
+ * done. If an error occurs, {@link Continuation#onError} is called.
+ * @see TelmateFrameGrabber#setMonitorTimeoutSec
+ *
+ * @param timeout
+ *       session timeout in sec
+ *
+ **/
+    void setMonitorTimeoutSec(@org.kurento.client.internal.server.Param("timeout") int timeout, Continuation<Void> cont);
+
+/**
+ *
+ * set monitoring Thread timeout in seconds
+ *
+ * @param timeout
+ *       session timeout in sec
+ *
+ **/
+    void setMonitorTimeoutSec(Transaction tx, @org.kurento.client.internal.server.Param("timeout") int timeout);
+
+
+/**
+ *
+ * get the session id for this session
+ * @return UUID set for session *
+ **/
+  String getSessionUUID();
+
+/**
+ *
+ * Asynchronous version of getSessionUUID:
+ * {@link Continuation#onSuccess} is called when the action is
+ * done. If an error occurs, {@link Continuation#onError} is called.
+ * @see TelmateFrameGrabber#getSessionUUID
+ *
+ **/
+    void getSessionUUID(Continuation<String> cont);
+
+/**
+ *
+ * get the session id for this session
+ * @return UUID set for session *
+ **/
+    TFuture<String> getSessionUUID(Transaction tx);
+
+
+/**
+ *
+ * set the session UUID
+ *
+ * @param puuid
+ *       path of snapshots location
+ *
+ **/
+  void setSessionUUID(@org.kurento.client.internal.server.Param("puuid") String puuid);
+
+/**
+ *
+ * Asynchronous version of setSessionUUID:
+ * {@link Continuation#onSuccess} is called when the action is
+ * done. If an error occurs, {@link Continuation#onError} is called.
+ * @see TelmateFrameGrabber#setSessionUUID
+ *
+ * @param puuid
+ *       path of snapshots location
+ *
+ **/
+    void setSessionUUID(@org.kurento.client.internal.server.Param("puuid") String puuid, Continuation<Void> cont);
+
+/**
+ *
+ * set the session UUID
+ *
+ * @param puuid
+ *       path of snapshots location
+ *
+ **/
+    void setSessionUUID(Transaction tx, @org.kurento.client.internal.server.Param("puuid") String puuid);
+
+
 
 
 
@@ -219,13 +362,13 @@ public interface TelmateFrameGrabber extends OpenCVFilter {
       props.add("mediaPipeline",mediaPipeline);
     }
 
-	public Builder withProperties(Properties properties) {
-    	return (Builder)super.withProperties(properties);
-  	}
+   public Builder withProperties(Properties properties) {
+       return (Builder)super.withProperties(properties);
+   }
 
-	public Builder with(String name, Object value) {
-		return (Builder)super.with(name, value);
-	}
+   public Builder with(String name, Object value) {
+      return (Builder)super.with(name, value);
+   }
 
     }
 

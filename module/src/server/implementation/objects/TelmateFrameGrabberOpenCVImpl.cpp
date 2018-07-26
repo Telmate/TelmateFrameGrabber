@@ -35,43 +35,50 @@ TelmateFrameGrabberOpenCVImpl::TelmateFrameGrabberOpenCVImpl ()
   this->outputFormat = FGFMT_JPEG;
   this->lastQueueTimeStamp = 0;
   this->queueLength = 0;
-  this->frameQueue = new avis_blocking_queue<VideoFrame*>;
   this->monitorTimeoutMs = 60000; // 60 sec.
 
+  this->isThreaded = false;
 
-  this->thr = new boost::thread(boost::bind(
-          &TelmateFrameGrabberOpenCVImpl::queueHandler, this));
-  this->thr->detach();
+  if(this->isThreaded) {
+    this->frameQueue = new avis_blocking_queue<VideoFrame *>;
 
-  this->wdThr = new boost::thread(boost::bind(
-          &TelmateFrameGrabberOpenCVImpl::watchDogThread, this));
-  this->wdThr->detach();
+    this->thr = new boost::thread(boost::bind(
+            &TelmateFrameGrabberOpenCVImpl::queueHandler, this));
+    this->thr->detach();
 
-  GST_INFO("Constructor was called for %s", this->epName.c_str());
+    this->wdThr = new boost::thread(boost::bind(
+            &TelmateFrameGrabberOpenCVImpl::watchDogThread, this));
+    this->wdThr->detach();
 
+    GST_INFO("*** THREADED *** Constructor was called for %s", this->epName.c_str());
+  }
+  else {
+      GST_INFO("*** NON-THREADED *** Constructor was called for %s", this->epName.c_str());
+  }
 }
 
 TelmateFrameGrabberOpenCVImpl::~TelmateFrameGrabberOpenCVImpl() {
 
-  VideoFrame *ptrVf;
-  this->thrLoop = false;
-  this->monThreadLoop = false;
+  if(this->isThreaded) {
+    VideoFrame *ptrVf;
+    this->thrLoop = false;
+    this->monThreadLoop = false;
 
-  boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
+    boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
 
 
-  while(this->queueLength > 0) {
-    this->frameQueue->pop(ptrVf); // blocks
-    --this->queueLength;
-    if(ptrVf != NULL) {
+    while (this->queueLength > 0) {
+      this->frameQueue->pop(ptrVf); // blocks
+      --this->queueLength;
+      if (ptrVf != NULL) {
         delete ptrVf;
         ptrVf = NULL;
+      }
     }
+
+    delete this->frameQueue;
+    this->frameQueue = NULL;
   }
-
-  delete this->frameQueue;
-  this->frameQueue = NULL;
-
 
   GST_INFO("Destructor was called for %s", this->epName.c_str());
 
@@ -88,19 +95,94 @@ int TelmateFrameGrabberOpenCVImpl::cleanup() {
  * be performed here and will be sent back to Media Pipline.
  */
 void TelmateFrameGrabberOpenCVImpl::process(cv::Mat &mat) {
+
+
+
   if ((this->getCurrentTimestampLong() - this->lastQueueTimeStamp) >= this->snapInterval) {
 
-    if(this->thrLoop) { // do not push into the queue if the destructor was called.
-      this->lastQueueTimeStamp = this->getCurrentTimestampLong();
-      VideoFrame *ptrVf = new VideoFrame();
-      ptrVf->mat = mat.clone();
-      ptrVf->ts = std::to_string(this->lastQueueTimeStamp);
+    if(this->isThreaded) {
 
-      this->frameQueue->push(ptrVf);
-      ++this->queueLength;
-      ++this->framesCounter;
+      if (this->thrLoop) { // do not push into the queue if the destructor was called.
+        this->lastQueueTimeStamp = this->getCurrentTimestampLong();
+        VideoFrame *ptrVf = new VideoFrame();
+        ptrVf->mat = mat.clone();
+        ptrVf->ts = std::to_string(this->lastQueueTimeStamp);
+
+        this->frameQueue->push(ptrVf);
+        ++this->queueLength;
+        ++this->framesCounter;
+      }
     }
+    else {
+
+      std::vector<int> params;
+      std::string image_extension;
+
+      this->lastQueueTimeStamp = this->getCurrentTimestampLong();
+
+
+      switch (this->outputFormat) {
+        case FGFMT_JPEG:
+          /* Set jpeg params */
+          params.push_back(CV_IMWRITE_JPEG_QUALITY);
+              params.push_back(FG_JPEG_QUALITY);
+              image_extension = ".jpeg";
+              break;
+        case FGFMT_PNG:
+          /* Set PNG parameters, compression etc. */
+          params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+              params.push_back(FG_PNG_QUALITY);
+              image_extension = ".png";
+              break;
+        default:
+          /* Defaults to jpeg */
+          params.push_back(CV_IMWRITE_JPEG_QUALITY);
+              params.push_back(FG_JPEG_QUALITY);
+              image_extension = ".jpeg";
+              break;
+      }
+
+      std::string filename =
+              std::to_string((long) this->framesCounter) + "_" +
+              std::to_string(this->getCurrentTimestampLong()) +
+              image_extension;
+
+
+      if (this->storagePathSubdir.empty()) {
+
+        this->storagePathSubdir = this->storagePath + "/frames_" + this->getCurrentTimestampString();
+        boost::filesystem::path dir(this->storagePathSubdir.c_str());
+        GST_INFO("going to create a directory in %s", this->storagePathSubdir.c_str());
+        if (!boost::filesystem::create_directories(dir)) {
+          GST_ERROR("%s create_directories() failed for: %s", this->epName.c_str(),
+                    this->storagePathSubdir.c_str());
+        }
+
+      }
+
+      std::string fullpath = this->storagePathSubdir + "/" + filename;
+
+      try {
+        cv::imwrite(fullpath.c_str(), mat, params);
+      }
+      catch (...) {
+        GST_ERROR("::queueHandler() imgwrite() failed.");
+        /*throw KurentoException(NOT_IMPLEMENTED,
+                               "TelmateFrameGrabberOpenCVImpl::queueHandler() imgwrite() failed. \n");*/
+      }
+
+      ++this->framesCounter;
+
+
+    }
+
+
   }
+
+
+
+
+
 }
 /*
  * This function is executed inside the queueHandler thread as a main() function.
@@ -110,7 +192,7 @@ void TelmateFrameGrabberOpenCVImpl::process(cv::Mat &mat) {
 void TelmateFrameGrabberOpenCVImpl::queueHandler() {
 
   VideoFrame *ptrVf;
-  cv::Mat image;
+  //cv::Mat image;
   std::vector<int> params;
   std::string image_extension;
 
@@ -297,8 +379,6 @@ void TelmateFrameGrabberOpenCVImpl::setSessionUUID(const std::string &puuid) {
   GST_INFO("Session UUID was set to: %s", this->uuid.c_str());
   return;
 }
-
-
 
 } /* telmateframegrabber */
 } /* module */
